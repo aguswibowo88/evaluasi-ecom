@@ -1,6 +1,7 @@
 """Ingest EVALUASI E-COM.xlsx — pisahkan Brand vs Item, agregasi KPI."""
 from __future__ import annotations
 
+import re
 from io import BytesIO
 from pathlib import Path
 from typing import BinaryIO
@@ -34,6 +35,9 @@ YTD_KEYS = ("YTD AUG 26", "YTD AUG 2026", "YTD AUG", "YTD 26", "YTD AUG26")
 GAP_KEYS = ("KURANG TARGET", "SHORTFALL", "SELISIH TARGET")
 TREND_KEYS = ("SALES TREND", "TREND SALES", "TREND %", "% TREND")
 BRAND_KEYS = ("BRAND", "MEREK")
+YEAR_SKIP_KEYS = ("TARGET", "KURANG", "TREND", "GROWTH", "GAP", "SHORTFALL", "SELISIH")
+YEAR_HEADER_RE = re.compile(r"\b(20\d{2})\b")
+YEAR_SHORT_RE = re.compile(r"(?:YTD|OMSET|SALES|ACTUAL|NET|TAHUN).*?\b(\d{2}|\d{4})\s*$")
 
 
 def _norm(value: object) -> str:
@@ -63,6 +67,19 @@ def _canonical_platform(sheet_name: str) -> str | None:
         if alias in key or key in alias:
             return platform
     return None
+
+
+def _normalize_trend(value: object) -> float:
+    """Sales Trend / YoY sebagai rasio (0.12 = 12%). Angka > 1.5 dianggap persen."""
+    if value is None or (isinstance(value, float) and pd.isna(value)):
+        return 0.0
+    trend = _to_number(value)
+    as_text = str(value)
+    if "%" in as_text and abs(trend) > 1:
+        return trend / 100.0
+    if abs(trend) > 1.5:
+        return trend / 100.0
+    return trend
 
 
 def _to_number(value: object) -> float:
@@ -150,6 +167,35 @@ def _is_total_row(name: str) -> bool:
     return label in TOTAL_MARKERS or label.startswith("TOTAL")
 
 
+def _year_from_header(col: str) -> int | None:
+    """Deteksi kolom tahun (2024 / YTD AUG 25) — skip target, gap, trend."""
+    label = _norm(col)
+    if any(key in label for key in YEAR_SKIP_KEYS):
+        return None
+    match = YEAR_HEADER_RE.search(label)
+    if match:
+        return int(match.group(1))
+    match = YEAR_SHORT_RE.search(label)
+    if not match:
+        return None
+    token = match.group(1)
+    year = int(token)
+    if year < 100:
+        year += 2000
+    if 2000 <= year <= 2099:
+        return year
+    return None
+
+
+def _year_columns(df: pd.DataFrame) -> list[str]:
+    cols = [
+        c
+        for c in df.columns
+        if isinstance(c, str) and c.startswith("sales_") and c[6:].isdigit()
+    ]
+    return sorted(cols, key=lambda c: int(c.split("_")[1]))
+
+
 def _classify_sheet(df: pd.DataFrame, platform: str) -> tuple[pd.DataFrame, pd.DataFrame]:
     work = df.copy()
     work.columns = [str(c).replace("\n", " ").strip() for c in work.columns]
@@ -191,9 +237,19 @@ def _classify_sheet(df: pd.DataFrame, platform: str) -> tuple[pd.DataFrame, pd.D
         target = _to_number(row.get(target_col)) if target_col else 0.0
         ytd = _to_number(row.get(ytd_col)) if ytd_col else 0.0
         gap = _to_number(row.get(gap_col)) if gap_col else (ytd - target)
-        trend = _to_number(row.get(trend_col)) if trend_col else 0.0
-        if trend_col and isinstance(row.get(trend_col), str) and "%" in str(row.get(trend_col)) and abs(trend) > 1:
-            trend = trend / 100.0
+        trend = _normalize_trend(row.get(trend_col) if trend_col else None)
+
+        skip_cols = {name_col, brand_col, target_col, gap_col, trend_col}
+        year_sales: dict[str, float] = {}
+        for col in columns:
+            if col in skip_cols:
+                continue
+            year = _year_from_header(col)
+            if year is None:
+                continue
+            year_sales[f"sales_{year}"] = _to_number(row.get(col))
+        if ytd_col:
+            year_sales.setdefault("sales_2026", ytd)
 
         records.append(
             {
@@ -205,6 +261,7 @@ def _classify_sheet(df: pd.DataFrame, platform: str) -> tuple[pd.DataFrame, pd.D
                 "ytd_aug_26": ytd,
                 "kurang_target": gap,
                 "sales_trend": trend,
+                **year_sales,
             }
         )
 
@@ -226,15 +283,15 @@ def _classify_sheet(df: pd.DataFrame, platform: str) -> tuple[pd.DataFrame, pd.D
     brands = out[out["row_type"] == "brand"].copy()
     items = out[out["row_type"] == "item"].copy()
     if brands.empty and not items.empty:
-        brands = (
-            items.groupby(["platform", "brand"], as_index=False)
-            .agg(
-                target_2026=("target_2026", "sum"),
-                ytd_aug_26=("ytd_aug_26", "sum"),
-                kurang_target=("kurang_target", "sum"),
-                sales_trend=("sales_trend", "mean"),
-            )
-        )
+        agg = {
+            "target_2026": ("target_2026", "sum"),
+            "ytd_aug_26": ("ytd_aug_26", "sum"),
+            "kurang_target": ("kurang_target", "sum"),
+            "sales_trend": ("sales_trend", "mean"),
+        }
+        for col in _year_columns(items):
+            agg[col] = (col, "sum")
+        brands = items.groupby(["platform", "brand"], as_index=False).agg(**agg)
         brands["row_type"] = "brand"
         brands["name"] = brands["brand"]
     return brands, items
@@ -269,7 +326,10 @@ def ingest_evaluasi_ecom(source: str | Path | BytesIO | BinaryIO | None = None) 
 
     brands_df = pd.concat(brand_frames, ignore_index=True) if brand_frames else pd.DataFrame()
     items_df = pd.concat(item_frames, ignore_index=True) if item_frames else pd.DataFrame()
-    return {"brands": brands_df, "items": items_df}
+    for frame in (brands_df, items_df):
+        for col in _year_columns(frame):
+            frame[col] = frame[col].fillna(0.0)
+    return {"brands": brands_df, "items": items_df, "ingest_version": 4}
 
 
 def kpi_summary(brands: pd.DataFrame) -> dict[str, float]:
@@ -307,19 +367,46 @@ def brand_performance(brands: pd.DataFrame) -> pd.DataFrame:
     )
 
 
-def support_program_table(items: pd.DataFrame, platform: str | None = None, limit: int = 25) -> pd.DataFrame:
-    """Item underperformer: gap paling negatif, lalu sales trend terendah."""
+def brand_growth(brands: pd.DataFrame) -> pd.DataFrame:
+    """Penjualan per brand per tahun, diagregasi lintas semua platform."""
+    empty = pd.DataFrame(columns=["brand", "tahun", "value"])
+    if brands.empty:
+        return empty
+    year_cols = _year_columns(brands)
+    if year_cols:
+        work = brands.groupby("brand", as_index=False)[year_cols].sum()
+    else:
+        tmp = brands.groupby("brand", as_index=False).agg(
+            sales_2026=("ytd_aug_26", "sum"),
+            trend=("sales_trend", "mean"),
+        )
+        tmp["sales_2025"] = tmp.apply(
+            lambda r: (r["sales_2026"] / (1.0 + r["trend"])) if r["trend"] > -0.95 else r["sales_2026"],
+            axis=1,
+        )
+        work = tmp[["brand", "sales_2025", "sales_2026"]]
+        year_cols = ["sales_2025", "sales_2026"]
+
+    long = work.melt(id_vars=["brand"], value_vars=year_cols, var_name="year_col", value_name="value")
+    long["tahun"] = long["year_col"].str.replace("sales_", "", regex=False).astype(int)
+    return long[["brand", "tahun", "value"]].sort_values(["brand", "tahun"]).reset_index(drop=True)
+
+
+def support_program_table(items: pd.DataFrame, platform: str | None = None, limit: int | None = None) -> pd.DataFrame:
+    """Hanya item Sales Trend < 0, diurut gap paling negatif lalu trend terendah."""
     if items.empty:
         return items
     table = items.copy()
     if platform and platform != "Semua Platform":
         table = table[table["platform"] == platform]
-    table = table[table["kurang_target"] < 0]
+    table = table[table["sales_trend"] < 0]
     table["achievement"] = table.apply(
         lambda r: round((r["ytd_aug_26"] / r["target_2026"] * 100.0) if r["target_2026"] else 0.0, 1),
         axis=1,
     )
     table = table.sort_values(["kurang_target", "sales_trend"], ascending=[True, True])
-    table = table.head(limit).reset_index(drop=True)
+    if limit:
+        table = table.head(limit)
+    table = table.reset_index(drop=True)
     table.insert(0, "rank", table.index + 1)
     return table

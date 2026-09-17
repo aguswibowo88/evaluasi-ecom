@@ -7,7 +7,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Alignment, Font, PatternFill
 
 PLATFORMS = ["Shopee", "Tokopedia", "Alfagift", "PCA", "Bli Bli", "BTB", "Lazada"]
-HEADERS = ["No", "Item", "TARGET 2026", "YTD AUG 26", "KURANG TARGET", "Sales Trend"]
+HEADERS = ["No", "Item", "2024", "2025", "TARGET 2026", "YTD AUG 26", "KURANG TARGET", "Sales Trend"]
 
 # Skala platform terhadap target nasional (demo)
 PLATFORM_WEIGHT = {
@@ -17,6 +17,17 @@ PLATFORM_WEIGHT = {
     "Bli Bli": 0.12,
     "Alfagift": 0.09,
     "PCA": 0.07,
+    "BTB": 0.04,
+}
+
+# Geser YoY per platform agar line chart Brand Growth tidak datar
+PLATFORM_TREND_SHIFT = {
+    "Shopee": 0.05,
+    "Tokopedia": 0.02,
+    "Lazada": -0.04,
+    "Bli Bli": -0.06,
+    "Alfagift": 0.01,
+    "PCA": -0.09,
     "BTB": 0.04,
 }
 
@@ -67,7 +78,7 @@ def build_workbook(path: Path) -> Path:
         ws = wb.create_sheet(platform)
         ws["A1"] = f"EVALUASI PENJUALAN E-COMMERCE {platform.upper()} 2026"
         ws["A1"].font = Font(bold=True, size=14, color="0F2744")
-        ws.merge_cells("A1:F1")
+        ws.merge_cells("A1:H1")
         for col, header in enumerate(HEADERS, start=1):
             cell = ws.cell(2, col, header)
             cell.font = Font(bold=True, color="FFFFFF")
@@ -81,6 +92,8 @@ def build_workbook(path: Path) -> Path:
             brand_target = 0.0
             brand_ytd = 0.0
             brand_gap = 0.0
+            brand_y2024 = 0.0
+            brand_y2025 = 0.0
             brand_trend_acc = 0.0
             item_rows: list[tuple] = []
 
@@ -88,35 +101,45 @@ def build_workbook(path: Path) -> Path:
                 target = round(BRAND_BASE[brand] * weight * share)
                 ytd = round(target * ach)
                 gap = ytd - target
+                trend_adj = round(trend + PLATFORM_TREND_SHIFT[platform], 4)
+                sales_2025 = round(ytd / (1 + trend_adj)) if trend_adj > -0.9 else round(ytd * 1.12)
+                sales_2024 = round(sales_2025 / (1.03 + share * 0.06))
                 brand_target += target
                 brand_ytd += ytd
                 brand_gap += gap
-                brand_trend_acc += trend
-                item_rows.append((name, target, ytd, gap, trend))
+                brand_y2024 += sales_2024
+                brand_y2025 += sales_2025
+                brand_trend_acc += trend_adj
+                item_rows.append((name, sales_2024, sales_2025, target, ytd, gap, trend_adj))
 
             avg_trend = brand_trend_acc / len(items)
             ws.cell(row_idx, 1, no)
             ws.cell(row_idx, 2, brand).font = Font(bold=True)
-            ws.cell(row_idx, 3, brand_target)
-            ws.cell(row_idx, 4, brand_ytd)
-            ws.cell(row_idx, 5, brand_gap)
-            ws.cell(row_idx, 6, round(avg_trend, 4))
+            ws.cell(row_idx, 3, brand_y2024)
+            ws.cell(row_idx, 4, brand_y2025)
+            ws.cell(row_idx, 5, brand_target)
+            ws.cell(row_idx, 6, brand_ytd)
+            ws.cell(row_idx, 7, brand_gap)
+            ws.cell(row_idx, 8, round(avg_trend, 4))
             row_idx += 1
             no += 1
 
-            for name, target, ytd, gap, trend in item_rows:
+            for name, sales_2024, sales_2025, target, ytd, gap, trend in item_rows:
                 ws.cell(row_idx, 1, no)
                 ws.cell(row_idx, 2, name)
-                ws.cell(row_idx, 3, target)
-                ws.cell(row_idx, 4, ytd)
-                ws.cell(row_idx, 5, gap)
-                ws.cell(row_idx, 6, trend)
+                ws.cell(row_idx, 3, sales_2024)
+                ws.cell(row_idx, 4, sales_2025)
+                ws.cell(row_idx, 5, target)
+                ws.cell(row_idx, 6, ytd)
+                ws.cell(row_idx, 7, gap)
+                ws.cell(row_idx, 8, trend)
                 row_idx += 1
                 no += 1
 
         ws.cell(row_idx, 2, "TOTAL").font = Font(bold=True)
-        for col in range(1, 7):
-            ws.column_dimensions[{1: "A", 2: "B", 3: "C", 4: "D", 5: "E", 6: "F"}[col]].width = 28
+        col_letters = {1: "A", 2: "B", 3: "C", 4: "D", 5: "E", 6: "F", 7: "G", 8: "H"}
+        for col in range(1, 9):
+            ws.column_dimensions[col_letters[col]].width = 18
         ws.column_dimensions["B"].width = 42
 
     path.parent.mkdir(parents=True, exist_ok=True)
