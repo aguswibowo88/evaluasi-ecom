@@ -62,10 +62,15 @@ st.markdown(
         color: #D5DEE8 !important;
       }}
       header[data-testid="stHeader"] {{ background: transparent; }}
+      @keyframes fadeUp {{
+        from {{ opacity: 0; transform: translateY(18px); }}
+        to {{ opacity: 1; transform: translateY(0); }}
+      }}
       .hero {{
         background: linear-gradient(120deg, {NAVY} 0%, #163A5F 58%, {TEAL} 145%);
         color: #fff; padding: 1.35rem 1.6rem; border-radius: 16px;
         margin-bottom: 1.1rem; box-shadow: 0 10px 30px rgba(15,39,68,.18);
+        animation: fadeUp .55s ease-out;
       }}
       .hero h1 {{ font-size: 1.55rem; margin: 0 0 .25rem 0; letter-spacing: .2px; }}
       .hero p {{ margin: 0; opacity: .86; font-size: .92rem; }}
@@ -73,9 +78,10 @@ st.markdown(
         background: #fff; border-radius: 14px; padding: 1.05rem 1.15rem;
         border: 1px solid #E4EAF2; box-shadow: 0 4px 14px rgba(15,39,68,.05);
         min-height: 118px; border-left: 4px solid {TEAL};
+        animation: fadeUp .65s ease-out both;
       }}
-      .kpi.target {{ border-left-color: {NAVY}; }}
-      .kpi.shortfall {{ border-left-color: {SOFT_RED}; }}
+      .kpi.target {{ border-left-color: {NAVY}; animation-delay: .05s; }}
+      .kpi.shortfall {{ border-left-color: {SOFT_RED}; animation-delay: .18s; }}
       .kpi .label {{
         color: {MUTED}; font-size: .78rem; font-weight: 600;
         letter-spacing: .4px; text-transform: uppercase;
@@ -91,6 +97,7 @@ st.markdown(
         background: #fff; border: 1px solid #E4EAF2; border-radius: 14px;
         padding: .35rem .45rem .15rem; box-shadow: 0 4px 14px rgba(15,39,68,.05);
         margin-bottom: .7rem;
+        animation: fadeUp .75s ease-out both;
       }}
       .badge-demo {{
         display: inline-block; background: #FEF3C7; color: #92400E;
@@ -140,12 +147,12 @@ def fmt_idr(n: float) -> str:
 
 
 @st.cache_data(show_spinner=False)
-def load_from_bytes(data: bytes, version: int = 5) -> dict[str, pd.DataFrame]:
+def load_from_bytes(data: bytes, version: int = 7) -> dict[str, pd.DataFrame]:
     return ingest_evaluasi_ecom(BytesIO(data))
 
 
 @st.cache_data(show_spinner=False)
-def load_from_path(path_str: str, mtime: float, version: int = 5) -> dict[str, pd.DataFrame]:
+def load_from_path(path_str: str, mtime: float, version: int = 7) -> dict[str, pd.DataFrame]:
     return ingest_evaluasi_ecom(path_str)
 
 
@@ -165,8 +172,8 @@ CHART_CFG = {
 }
 
 
-def _lock_axes(fig: go.Figure) -> go.Figure:
-    fig.update_layout(dragmode=False, uirevision="static")
+def _lock_axes(fig: go.Figure, allow_animate: bool = False) -> go.Figure:
+    fig.update_layout(dragmode=False, uirevision=None if allow_animate else "static")
     fig.update_xaxes(
         fixedrange=True,
         color=AXIS_BLACK,
@@ -248,6 +255,7 @@ def plot_brand_bars(df: pd.DataFrame) -> go.Figure:
         bargroupgap=0.08,
         yaxis=dict(gridcolor="#E6EDF4", separatethousands=True, zeroline=False),
         xaxis=dict(showgrid=False),
+        transition=dict(duration=650, easing="cubic-in-out"),
     )
     return _lock_axes(fig)
 
@@ -260,28 +268,37 @@ def plot_brand_growth(df: pd.DataFrame) -> go.Figure:
     year_labels = [str(y) for y in years]
     brands = list(df["brand"].drop_duplicates())
     palette = [NAVY, TEAL, "#3B82F6", SOFT_RED, "#0EA5A4", "#7C3AED"]
+    series: list[tuple[str, list[float], str]] = []
     for idx, brand in enumerate(brands):
         subset = df[df["brand"] == brand].set_index("tahun").reindex(years)
-        values = subset["value"].fillna(0)
-        fig.add_trace(
-            go.Scatter(
-                name=str(brand).title(),
-                x=year_labels,
-                y=values,
-                mode="lines+markers",
-                line=dict(
-                    width=2.8,
-                    shape="spline",
-                    smoothing=1.05,
-                    color=BRAND_COLORS.get(str(brand), palette[idx % len(palette)]),
-                ),
-                marker=dict(size=10, symbol="circle"),
-                hovertemplate="Tahun %{x}<br>%{fullData.name}: %{customdata}<extra></extra>",
-                customdata=[fmt_idr(float(v)) for v in values],
+        values = [float(v) for v in subset["value"].fillna(0)]
+        color = BRAND_COLORS.get(str(brand), palette[idx % len(palette)])
+        series.append((str(brand).title(), values, color))
+
+    def _traces(upto: int) -> list[go.Scatter]:
+        traces: list[go.Scatter] = []
+        for name, values, color in series:
+            xs = year_labels[:upto]
+            ys = values[:upto]
+            traces.append(
+                go.Scatter(
+                    name=name,
+                    x=xs,
+                    y=ys,
+                    mode="lines+markers",
+                    line=dict(width=2.8, shape="spline", smoothing=1.05, color=color),
+                    marker=dict(size=10, symbol="circle"),
+                    hovertemplate="Tahun %{x}<br>%{fullData.name}: %{customdata}<extra></extra>",
+                    customdata=[fmt_idr(v) for v in ys],
+                )
             )
-        )
+        return traces
+
+    for trace in _traces(len(years)):
+        fig.add_trace(trace)
+    fig.frames = [go.Frame(data=_traces(n), name=str(n)) for n in range(1, len(years) + 1)]
     fig.update_layout(
-        margin=dict(t=10, b=10, l=10, r=10),
+        margin=dict(t=36, b=10, l=10, r=10),
         paper_bgcolor="rgba(0,0,0,0)",
         plot_bgcolor="rgba(0,0,0,0)",
         legend=dict(orientation="h", y=1.12, x=0, font=dict(color=NAVY)),
@@ -291,16 +308,47 @@ def plot_brand_growth(df: pd.DataFrame) -> go.Figure:
             gridcolor="#E6EDF4",
             zeroline=False,
             separatethousands=True,
+            range=[0, max((max(vals) for _, vals, _ in series), default=0) * 1.12 or 1],
         ),
         xaxis=dict(
             title="Tahun",
             type="category",
             categoryorder="array",
             categoryarray=year_labels,
+            range=[-0.4, len(year_labels) - 0.6],
             showgrid=False,
         ),
+        updatemenus=[
+            dict(
+                type="buttons",
+                direction="left",
+                x=1,
+                xanchor="right",
+                y=1.22,
+                yanchor="top",
+                showactive=False,
+                bgcolor="#0F2744",
+                bordercolor="#0F2744",
+                font=dict(color="#FFFFFF", size=12),
+                buttons=[
+                    dict(
+                        label="▶ Animasi",
+                        method="animate",
+                        args=[
+                            None,
+                            {
+                                "frame": {"duration": 750, "redraw": True},
+                                "fromcurrent": False,
+                                "mode": "immediate",
+                                "transition": {"duration": 500, "easing": "cubic-in-out"},
+                            },
+                        ],
+                    )
+                ],
+            )
+        ],
     )
-    return _lock_axes(fig)
+    return _lock_axes(fig, allow_animate=True)
 
 
 def render_kpi(title: str, value: str, hint: str, hint_color: str, kind: str = "", neg: bool = False) -> None:
@@ -390,7 +438,8 @@ else:
             is_demo = True
         payload = load_from_path(str(found), found.stat().st_mtime)
         source_label = found.name
-        if found == sample_path:
+        sample_resolved = sample_path.resolve()
+        if found.resolve() == sample_resolved:
             is_demo = True
     except Exception as exc:  # koneksi/file rusak
         error_msg = str(exc)
