@@ -140,12 +140,12 @@ def fmt_idr(n: float) -> str:
 
 
 @st.cache_data(show_spinner=False)
-def load_from_bytes(data: bytes, version: int = 5) -> dict[str, pd.DataFrame]:
+def load_from_bytes(data: bytes, version: int = 6) -> dict[str, pd.DataFrame]:
     return ingest_evaluasi_ecom(BytesIO(data))
 
 
 @st.cache_data(show_spinner=False)
-def load_from_path(path_str: str, mtime: float, version: int = 5) -> dict[str, pd.DataFrame]:
+def load_from_path(path_str: str, mtime: float, version: int = 6) -> dict[str, pd.DataFrame]:
     return ingest_evaluasi_ecom(path_str)
 
 
@@ -390,7 +390,8 @@ else:
             is_demo = True
         payload = load_from_path(str(found), found.stat().st_mtime)
         source_label = found.name
-        if found == sample_path:
+        sample_resolved = sample_path.resolve()
+        if found.resolve() == sample_resolved:
             is_demo = True
     except Exception as exc:  # koneksi/file rusak
         error_msg = str(exc)

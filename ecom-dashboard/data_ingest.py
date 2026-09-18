@@ -23,6 +23,8 @@ SHEET_ALIASES = {
     "BLI-BLI": "Bli Bli",
     "BTB": "BTB",
     "B2B": "BTB",
+    "BERHASIL TUMBUH BERSAMA": "BTB",
+    "TUMBUH BERSAMA": "BTB",
     "LAZADA": "Lazada",
 }
 
@@ -31,11 +33,11 @@ SKIP_MARKERS = {"NAN", "NONE", "NULL", "-", "—"}
 
 NAME_KEYS = ("ITEM", "NAMA", "PRODUCT", "PRODUK", "DESCRIPTION", "KETERANGAN", "SKU")
 TARGET_KEYS = ("TARGET 2026", "TARGET2026", "TGT 2026")
-YTD_KEYS = ("YTD AUG 26", "YTD AUG 2026", "YTD AUG", "YTD 26", "YTD AUG26")
+YTD_KEYS = ("YTD AUG'26", "YTD AUG 26", "YTD AUG 2026", "YTD AUG", "YTD 26", "YTD AUG26")
 GAP_KEYS = ("KURANG TARGET", "SHORTFALL", "SELISIH TARGET")
 TREND_KEYS = ("SALES TREND", "TREND SALES", "TREND %", "% TREND")
 BRAND_KEYS = ("BRAND", "MEREK")
-YEAR_SKIP_KEYS = ("TARGET", "KURANG", "TREND", "GROWTH", "GAP", "SHORTFALL", "SELISIH")
+YEAR_SKIP_KEYS = ("TARGET", "KURANG", "TREND", "GROWTH", "GAP", "SHORTFALL", "SELISIH", "EST")
 YEAR_HEADER_RE = re.compile(r"\b(20\d{2})\b")
 YEAR_SHORT_RE = re.compile(r"(?:YTD|OMSET|SALES|ACTUAL|NET|TAHUN).*?\b(\d{2}|\d{4})\s*$")
 
@@ -46,12 +48,14 @@ def _norm(value: object) -> str:
 
 
 def resolve_excel_path(base_dir: Path | None = None) -> Path | None:
+    """Prioritas: file asli di root repo, baru sampel di ecom-dashboard/data."""
     root = Path(base_dir) if base_dir else Path(__file__).resolve().parent
+    repo = root.parent
     candidates = [
-        root / "data" / "EVALUASI E-COM.xlsx",
+        repo / "EVALUASI E-COM.xlsx",
         root / "EVALUASI E-COM.xlsx",
-        root.parent / "EVALUASI E-COM.xlsx",
-        root.parent / "data" / "EVALUASI E-COM.xlsx",
+        repo / "macro" / "data" / "EVALUASI E-COM.xlsx",
+        root / "data" / "EVALUASI E-COM.xlsx",
     ]
     for path in candidates:
         if path.exists():
@@ -76,8 +80,6 @@ def _normalize_trend(value: object) -> float:
     trend = _to_number(value)
     as_text = str(value)
     if "%" in as_text and abs(trend) > 1:
-        return trend / 100.0
-    if abs(trend) > 1.5:
         return trend / 100.0
     return trend
 
@@ -126,12 +128,23 @@ def _match_column(columns: list[str], keys: tuple[str, ...], fallbacks: tuple[st
     return None
 
 
-def _pick_name_column(df: pd.DataFrame, columns: list[str]) -> str | None:
+def _pick_name_column(df: pd.DataFrame, columns: list[str], platform: str | None = None) -> str | None:
+    brand_cols = {c for c in columns if _norm(c) in BRAND_KEYS}
+    if platform:
+        plat_norm = _norm(platform)
+        for col in columns:
+            if col in brand_cols:
+                continue
+            label = _norm(col)
+            if label == plat_norm or _canonical_platform(col) == platform:
+                return col
     named = _match_column(columns, NAME_KEYS)
-    if named:
+    if named and named not in brand_cols:
         return named
     best_col, best_score = None, -1
     for col in df.columns:
+        if col in brand_cols:
+            continue
         series = df[col]
         if series.dtype != object and not pd.api.types.is_string_dtype(series):
             sample = series.dropna().head(8)
@@ -201,7 +214,7 @@ def _classify_sheet(df: pd.DataFrame, platform: str) -> tuple[pd.DataFrame, pd.D
     work.columns = [str(c).replace("\n", " ").strip() for c in work.columns]
     columns = list(work.columns)
 
-    name_col = _pick_name_column(work, columns)
+    name_col = _pick_name_column(work, columns, platform)
     if name_col is None:
         return pd.DataFrame(), pd.DataFrame()
 
@@ -249,7 +262,7 @@ def _classify_sheet(df: pd.DataFrame, platform: str) -> tuple[pd.DataFrame, pd.D
                 continue
             year_sales[f"sales_{year}"] = _to_number(row.get(col))
         if ytd_col:
-            year_sales.setdefault("sales_2026", ytd)
+            year_sales["sales_2026"] = ytd
 
         records.append(
             {
@@ -329,7 +342,7 @@ def ingest_evaluasi_ecom(source: str | Path | BytesIO | BinaryIO | None = None) 
     for frame in (brands_df, items_df):
         for col in _year_columns(frame):
             frame[col] = frame[col].fillna(0.0)
-    return {"brands": brands_df, "items": items_df, "ingest_version": 4}
+    return {"brands": brands_df, "items": items_df, "ingest_version": 5}
 
 
 def kpi_summary(brands: pd.DataFrame) -> dict[str, float]:
