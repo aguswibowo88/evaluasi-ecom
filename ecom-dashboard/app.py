@@ -8,6 +8,7 @@ from pathlib import Path
 import pandas as pd
 import plotly.graph_objects as go
 import streamlit as st
+import streamlit.components.v1 as components
 
 from data_ingest import (
     PLATFORMS,
@@ -61,26 +62,36 @@ st.markdown(
         color: #D5DEE8 !important;
       }}
       header[data-testid="stHeader"] {{ background: transparent; }}
-      @keyframes fadeUp {{
-        from {{ opacity: 0; transform: translateY(18px); }}
-        to {{ opacity: 1; transform: translateY(0); }}
+      .reveal-el,
+      div[data-testid="stPlotlyChart"],
+      div[data-testid="stSelectbox"] {{
+        opacity: 0;
+        transform: translateY(18px);
+        transition: opacity .75s cubic-bezier(.22, .61, .36, 1),
+                    transform .75s cubic-bezier(.22, .61, .36, 1);
+        will-change: opacity, transform;
+      }}
+      .reveal-el.in-view,
+      div[data-testid="stPlotlyChart"].in-view,
+      div[data-testid="stSelectbox"].in-view {{
+        opacity: 1;
+        transform: translateY(0);
       }}
       .hero {{
         background: linear-gradient(120deg, {NAVY} 0%, #163A5F 58%, {TEAL} 145%);
         color: #fff; padding: 1.35rem 1.6rem; border-radius: 16px;
         margin-bottom: 1.1rem; box-shadow: 0 10px 30px rgba(15,39,68,.18);
-        animation: fadeUp .55s ease-out;
+        transition-delay: 0s;
       }}
-      .hero h1 {{ font-size: 1.55rem; margin: 0 0 .25rem 0; letter-spacing: .2px; }}
-      .hero p {{ margin: 0; opacity: .86; font-size: .92rem; }}
+      .hero h1 {{ font-size: 1.55rem; margin: 0; letter-spacing: .2px; }}
       .kpi {{
         background: #fff; border-radius: 14px; padding: 1.05rem 1.15rem;
         border: 1px solid #E4EAF2; box-shadow: 0 4px 14px rgba(15,39,68,.05);
         min-height: 118px; border-left: 4px solid {TEAL};
-        animation: fadeUp .65s ease-out both;
+        transition-delay: .12s;
       }}
-      .kpi.target {{ border-left-color: {NAVY}; animation-delay: .05s; }}
-      .kpi.shortfall {{ border-left-color: {SOFT_RED}; animation-delay: .18s; }}
+      .kpi.target {{ border-left-color: {NAVY}; transition-delay: .08s; }}
+      .kpi.shortfall {{ border-left-color: {SOFT_RED}; transition-delay: .2s; }}
       .kpi .label {{
         color: {MUTED}; font-size: .78rem; font-weight: 600;
         letter-spacing: .4px; text-transform: uppercase;
@@ -90,13 +101,28 @@ st.markdown(
       .kpi .hint {{ font-size: .82rem; font-weight: 600; }}
       .section-title {{
         color: {NAVY}; font-size: 1.05rem; font-weight: 700; margin: .1rem 0 .15rem;
+        transition-delay: .06s;
       }}
-      .section-sub {{ color: {MUTED}; font-size: .82rem; margin: 0 0 .45rem; }}
+      .section-sub {{
+        color: {MUTED}; font-size: .82rem; margin: 0 0 .45rem;
+        transition-delay: .12s;
+      }}
       div[data-testid="stPlotlyChart"] {{
         background: #fff; border: 1px solid #E4EAF2; border-radius: 14px;
         padding: .35rem .45rem .15rem; box-shadow: 0 4px 14px rgba(15,39,68,.05);
         margin-bottom: .7rem;
-        animation: fadeUp .75s ease-out both;
+        transition-delay: .16s;
+      }}
+      .table-wrap {{ transition-delay: .1s; }}
+      div[data-testid="stSelectbox"] {{ transition-delay: .08s; }}
+      @media (prefers-reduced-motion: reduce) {{
+        .reveal-el, .reveal-el.in-view,
+        div[data-testid="stPlotlyChart"],
+        div[data-testid="stPlotlyChart"].in-view,
+        div[data-testid="stSelectbox"],
+        div[data-testid="stSelectbox"].in-view {{
+          opacity: 1; transform: none; transition: none;
+        }}
       }}
       .badge-demo {{
         display: inline-block; background: #FEF3C7; color: #92400E;
@@ -348,7 +374,7 @@ def render_kpi(title: str, value: str, hint: str, hint_color: str, kind: str = "
     value_cls = "value neg" if neg else "value"
     st.markdown(
         f"""
-        <div class="kpi {kind}">
+        <div class="kpi {kind} reveal-el">
           <div class="label">{title}</div>
           <div class="{value_cls}">{value}</div>
           <div class="hint" style="color:{hint_color}">{hint}</div>
@@ -384,7 +410,7 @@ def render_action_table(df: pd.DataFrame) -> None:
             "</tr>"
         )
     table_html = f"""
-    <div class="table-wrap">
+    <div class="table-wrap reveal-el">
       <table class="action-table">
         <thead>
           <tr>
@@ -447,10 +473,9 @@ perf = brand_performance(brands)
 growth = brand_growth(brands)
 
 st.markdown(
-    f"""
-    <div class="hero">
+    """
+    <div class="hero reveal-el">
       <h1>E-Commerce Sales Evaluation 2026</h1>
-      <p>Executive dashboard · agregasi Shopee, Tokopedia, Alfagift, PCA, Bli Bli, BTB, Lazada · sumber: {html.escape(source_label)}</p>
     </div>
     """,
     unsafe_allow_html=True,
@@ -476,8 +501,8 @@ st.write("")
 c1, c2 = st.columns(2)
 with c1:
     st.markdown(
-        '<div class="section-title">Platform Contribution</div>'
-        '<p class="section-sub">Distribusi TARGET 2026 antar 7 platform.</p>',
+        '<div class="section-title reveal-el">Platform Contribution</div>'
+        '<p class="section-sub reveal-el">Distribusi TARGET 2026 antar 7 platform.</p>',
         unsafe_allow_html=True,
     )
     if plat.empty:
@@ -486,8 +511,8 @@ with c1:
         st.plotly_chart(plot_platform_donut(plat), width="stretch", config=CHART_CFG)
 with c2:
     st.markdown(
-        '<div class="section-title">Brand Performance</div>'
-        '<p class="section-sub">Perbandingan TARGET 2026 vs YTD AUG 26 per brand.</p>',
+        '<div class="section-title reveal-el">Brand Performance</div>'
+        '<p class="section-sub reveal-el">Perbandingan TARGET 2026 vs YTD AUG 26 per brand.</p>',
         unsafe_allow_html=True,
     )
     if perf.empty:
@@ -496,8 +521,8 @@ with c2:
         st.plotly_chart(plot_brand_bars(perf), width="stretch", config=CHART_CFG)
 
 st.markdown(
-    '<div class="section-title">Brand Growth</div>'
-    '<p class="section-sub">Pertumbuhan penjualan per brand berdasarkan tahun (Tahun), diagregasi dari semua platform.</p>',
+    '<div class="section-title reveal-el">Brand Growth</div>'
+    '<p class="section-sub reveal-el">Pertumbuhan penjualan per brand berdasarkan tahun (Tahun), diagregasi dari semua platform.</p>',
     unsafe_allow_html=True,
 )
 if growth.empty:
@@ -506,8 +531,8 @@ else:
     st.plotly_chart(plot_brand_growth(growth), width="stretch", config=CHART_CFG)
 
 st.markdown(
-    '<div class="section-title">Support Program Action Table</div>'
-    '<p class="section-sub">Hanya item dengan Sales Trend negatif. Diurut dari KURANG TARGET paling besar (negatif), lalu Sales Trend terendah. Header tabel tetap terlihat saat scroll.</p>',
+    '<div class="section-title reveal-el">Support Program Action Table</div>'
+    '<p class="section-sub reveal-el">Hanya item dengan Sales Trend negatif. Diurut dari KURANG TARGET paling besar (negatif), lalu Sales Trend terendah. Header tabel tetap terlihat saat scroll.</p>',
     unsafe_allow_html=True,
 )
 platform_filter = st.selectbox("Filter by Platform", ["Semua Platform"] + PLATFORMS)
@@ -517,4 +542,45 @@ if action.empty:
     st.success("Tidak ada item dengan Sales Trend negatif pada filter ini.")
 else:
     render_action_table(action)
+
+components.html(
+    """
+    <script>
+    (function () {
+      const doc = window.parent.document;
+      const reduced = window.parent.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const selector = [
+        ".hero",
+        ".kpi",
+        ".section-title",
+        ".section-sub",
+        "div[data-testid='stPlotlyChart']",
+        ".table-wrap",
+        "div[data-testid='stSelectbox']"
+      ].join(",");
+      const root =
+        doc.querySelector("[data-testid='stAppViewContainer'] section") ||
+        doc.querySelector("section.main") ||
+        null;
+      function bind() {
+        const nodes = doc.querySelectorAll(selector);
+        if (reduced) {
+          nodes.forEach(function (el) { el.classList.add("in-view"); });
+          return;
+        }
+        const io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) entry.target.classList.add("in-view");
+            else entry.target.classList.remove("in-view");
+          });
+        }, { threshold: 0.12, root: root, rootMargin: "0px 0px -6% 0px" });
+        nodes.forEach(function (el) { io.observe(el); });
+      }
+      setTimeout(bind, 60);
+      setTimeout(bind, 400);
+    })();
+    </script>
+    """,
+    height=0,
+)
 
