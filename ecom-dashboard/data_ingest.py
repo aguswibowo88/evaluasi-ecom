@@ -48,12 +48,12 @@ def _norm(value: object) -> str:
 
 
 def resolve_excel_path(base_dir: Path | None = None) -> Path | None:
-    """Prioritas: file asli di root repo, baru sampel di ecom-dashboard/data."""
+    """Prioritas: file di folder dashboard, lalu root repo, baru sampel."""
     root = Path(base_dir) if base_dir else Path(__file__).resolve().parent
     repo = root.parent
     candidates = [
-        repo / "EVALUASI E-COM.xlsx",
         root / "EVALUASI E-COM.xlsx",
+        repo / "EVALUASI E-COM.xlsx",
         repo / "macro" / "data" / "EVALUASI E-COM.xlsx",
         root / "data" / "EVALUASI E-COM.xlsx",
     ]
