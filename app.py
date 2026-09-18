@@ -19,7 +19,6 @@ from data_ingest import (
     resolve_excel_path,
     support_program_table,
 )
-from generate_sample import build_workbook
 
 NAVY = "#0F2744"
 TEAL = "#1A9B8E"
@@ -147,19 +146,13 @@ def fmt_idr(n: float) -> str:
 
 
 @st.cache_data(show_spinner=False)
-def load_from_bytes(data: bytes, version: int = 7) -> dict[str, pd.DataFrame]:
+def load_from_bytes(data: bytes, version: int = 8) -> dict[str, pd.DataFrame]:
     return ingest_evaluasi_ecom(BytesIO(data))
 
 
 @st.cache_data(show_spinner=False)
-def load_from_path(path_str: str, mtime: float, version: int = 7) -> dict[str, pd.DataFrame]:
+def load_from_path(path_str: str, mtime: float, version: int = 8) -> dict[str, pd.DataFrame]:
     return ingest_evaluasi_ecom(path_str)
-
-
-def ensure_sample_file(path: Path) -> Path:
-    if not path.exists():
-        build_workbook(path)
-    return path
 
 
 # Chart statis: tanpa zoom / pan; hover tetap aktif
@@ -420,28 +413,26 @@ with st.sidebar:
     uploaded = st.file_uploader("Unggah EVALUASI E-COM.xlsx", type=["xlsx"])
     st.caption("Brands: Banana Boat, Freeman, Intuition, Schick")
 
-sample_path = Path(__file__).resolve().parent / "data" / "EVALUASI E-COM.xlsx"
+excel_path = resolve_excel_path(Path(__file__).resolve().parent)
+MISSING_EXCEL_MSG = "File EVALUASI E-COM.xlsx tidak ditemukan di direktori saat ini."
 source_label = "File lokal"
-is_demo = False
 error_msg = None
 payload = None
 
 if uploaded is not None:
-    payload = load_from_bytes(uploaded.getvalue())
-    source_label = uploaded.name
-else:
-    found = resolve_excel_path()
     try:
-        if found is None:
-            ensure_sample_file(sample_path)
-            found = sample_path
-            is_demo = True
-        payload = load_from_path(str(found), found.stat().st_mtime)
-        source_label = found.name
-        sample_resolved = sample_path.resolve()
-        if found.resolve() == sample_resolved:
-            is_demo = True
-    except Exception as exc:  # koneksi/file rusak
+        payload = load_from_bytes(uploaded.getvalue())
+        source_label = uploaded.name
+    except Exception as exc:
+        error_msg = str(exc)
+elif excel_path is None:
+    st.error(MISSING_EXCEL_MSG)
+    st.stop()
+else:
+    try:
+        payload = load_from_path(str(excel_path), excel_path.stat().st_mtime)
+        source_label = excel_path.name
+    except Exception as exc:
         error_msg = str(exc)
 
 if error_msg or payload is None:
@@ -455,11 +446,10 @@ plat = platform_contribution(brands)
 perf = brand_performance(brands)
 growth = brand_growth(brands)
 
-demo_badge = '<span class="badge-demo">DATA SAMPEL</span>' if is_demo else ""
 st.markdown(
     f"""
     <div class="hero">
-      <h1>E-Commerce Sales Evaluation 2026 {demo_badge}</h1>
+      <h1>E-Commerce Sales Evaluation 2026</h1>
       <p>Executive dashboard · agregasi Shopee, Tokopedia, Alfagift, PCA, Bli Bli, BTB, Lazada · sumber: {html.escape(source_label)}</p>
     </div>
     """,
@@ -528,8 +518,3 @@ if action.empty:
 else:
     render_action_table(action)
 
-if is_demo:
-    st.info(
-        "File asli `EVALUASI E-COM.xlsx` belum ditemukan. Dashboard memakai data sampel. "
-        "Unggah file di sidebar atau taruh di `ecom-dashboard/data/`."
-    )

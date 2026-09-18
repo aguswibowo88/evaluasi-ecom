@@ -47,20 +47,14 @@ def _norm(value: object) -> str:
     return " ".join(text.split())
 
 
+MISSING_EXCEL_MSG = "File EVALUASI E-COM.xlsx tidak ditemukan di direktori saat ini."
+
+
 def resolve_excel_path(base_dir: Path | None = None) -> Path | None:
-    """Prioritas: file di folder dashboard, lalu root repo, baru sampel."""
-    root = Path(base_dir) if base_dir else Path(__file__).resolve().parent
-    repo = root.parent
-    candidates = [
-        root / "EVALUASI E-COM.xlsx",
-        repo / "EVALUASI E-COM.xlsx",
-        repo / "macro" / "data" / "EVALUASI E-COM.xlsx",
-        root / "data" / "EVALUASI E-COM.xlsx",
-    ]
-    for path in candidates:
-        if path.exists():
-            return path
-    return None
+    """Cari EVALUASI E-COM.xlsx di folder yang sama dengan app.py / data_ingest.py."""
+    here = Path(base_dir) if base_dir else Path(__file__).resolve().parent
+    path = (here / "EVALUASI E-COM.xlsx").resolve()
+    return path if path.is_file() else None
 
 
 def _canonical_platform(sheet_name: str) -> str | None:
@@ -315,9 +309,7 @@ def ingest_evaluasi_ecom(source: str | Path | BytesIO | BinaryIO | None = None) 
     if source is None:
         found = resolve_excel_path()
         if found is None:
-            raise FileNotFoundError(
-                "File EVALUASI E-COM.xlsx tidak ditemukan. Unggah file atau taruh di folder data/."
-            )
+            raise FileNotFoundError(MISSING_EXCEL_MSG)
         source = found
 
     xls = pd.ExcelFile(source)
@@ -326,23 +318,38 @@ def ingest_evaluasi_ecom(source: str | Path | BytesIO | BinaryIO | None = None) 
     used_platforms: set[str] = set()
 
     for sheet in xls.sheet_names:
-        platform = _canonical_platform(sheet)
-        if platform is None or platform in used_platforms:
-            continue
-        used_platforms.add(platform)
         raw = pd.read_excel(xls, sheet_name=sheet, header=1)
-        brands, items = _classify_sheet(raw, platform)
-        if not brands.empty:
-            brand_frames.append(brands)
-        if not items.empty:
-            item_frames.append(items)
+        raw.columns = [str(c).replace("\n", " ").strip() for c in raw.columns]
+        mapped = _canonical_platform(sheet)
+        platform_col = _match_column(list(raw.columns), ("PLATFORM", "KANAL", "CHANNEL"))
+
+        groups: list[tuple[str, pd.DataFrame]] = []
+        if mapped:
+            groups.append((mapped, raw))
+        elif platform_col:
+            for plat_name, group in raw.groupby(platform_col, dropna=True):
+                platform = _canonical_platform(str(plat_name))
+                if platform:
+                    groups.append((platform, group.copy()))
+        else:
+            continue
+
+        for platform, chunk in groups:
+            if platform in used_platforms:
+                continue
+            used_platforms.add(platform)
+            brands, items = _classify_sheet(chunk, platform)
+            if not brands.empty:
+                brand_frames.append(brands)
+            if not items.empty:
+                item_frames.append(items)
 
     brands_df = pd.concat(brand_frames, ignore_index=True) if brand_frames else pd.DataFrame()
     items_df = pd.concat(item_frames, ignore_index=True) if item_frames else pd.DataFrame()
     for frame in (brands_df, items_df):
         for col in _year_columns(frame):
             frame[col] = frame[col].fillna(0.0)
-    return {"brands": brands_df, "items": items_df, "ingest_version": 5}
+    return {"brands": brands_df, "items": items_df, "ingest_version": 6}
 
 
 def kpi_summary(brands: pd.DataFrame) -> dict[str, float]:
