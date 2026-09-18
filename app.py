@@ -62,36 +62,29 @@ st.markdown(
         color: #D5DEE8 !important;
       }}
       header[data-testid="stHeader"] {{ background: transparent; }}
-      .reveal-el,
-      div[data-testid="stPlotlyChart"],
-      div[data-testid="stSelectbox"] {{
-        opacity: 0;
-        transform: translateY(18px);
-        transition: opacity .75s cubic-bezier(.22, .61, .36, 1),
-                    transform .75s cubic-bezier(.22, .61, .36, 1);
-        will-change: opacity, transform;
+      @keyframes fadeUp {{
+        from {{ opacity: 0; transform: translateY(16px); }}
+        to {{ opacity: 1; transform: translateY(0); }}
       }}
-      .reveal-el.in-view,
-      div[data-testid="stPlotlyChart"].in-view,
-      div[data-testid="stSelectbox"].in-view {{
-        opacity: 1;
-        transform: translateY(0);
+      .hero, .kpi, .section-title, .section-sub,
+      div[data-testid="stPlotlyChart"], .table-wrap {{
+        animation: fadeUp .7s cubic-bezier(.22, .61, .36, 1) both;
       }}
       .hero {{
         background: linear-gradient(120deg, {NAVY} 0%, #163A5F 58%, {TEAL} 145%);
         color: #fff; padding: 1.35rem 1.6rem; border-radius: 16px;
         margin-bottom: 1.1rem; box-shadow: 0 10px 30px rgba(15,39,68,.18);
-        transition-delay: 0s;
+        animation-delay: 0s;
       }}
       .hero h1 {{ font-size: 1.55rem; margin: 0; letter-spacing: .2px; }}
       .kpi {{
         background: #fff; border-radius: 14px; padding: 1.05rem 1.15rem;
         border: 1px solid #E4EAF2; box-shadow: 0 4px 14px rgba(15,39,68,.05);
         min-height: 118px; border-left: 4px solid {TEAL};
-        transition-delay: .12s;
+        animation-delay: .12s;
       }}
-      .kpi.target {{ border-left-color: {NAVY}; transition-delay: .08s; }}
-      .kpi.shortfall {{ border-left-color: {SOFT_RED}; transition-delay: .2s; }}
+      .kpi.target {{ border-left-color: {NAVY}; animation-delay: .08s; }}
+      .kpi.shortfall {{ border-left-color: {SOFT_RED}; animation-delay: .2s; }}
       .kpi .label {{
         color: {MUTED}; font-size: .78rem; font-weight: 600;
         letter-spacing: .4px; text-transform: uppercase;
@@ -101,27 +94,27 @@ st.markdown(
       .kpi .hint {{ font-size: .82rem; font-weight: 600; }}
       .section-title {{
         color: {NAVY}; font-size: 1.05rem; font-weight: 700; margin: .1rem 0 .15rem;
-        transition-delay: .06s;
+        animation-delay: .06s;
       }}
       .section-sub {{
         color: {MUTED}; font-size: .82rem; margin: 0 0 .45rem;
-        transition-delay: .12s;
+        animation-delay: .1s;
       }}
       div[data-testid="stPlotlyChart"] {{
         background: #fff; border: 1px solid #E4EAF2; border-radius: 14px;
         padding: .35rem .45rem .15rem; box-shadow: 0 4px 14px rgba(15,39,68,.05);
         margin-bottom: .7rem;
-        transition-delay: .16s;
+        animation-delay: .16s;
       }}
-      .table-wrap {{ transition-delay: .1s; }}
-      div[data-testid="stSelectbox"] {{ transition-delay: .08s; }}
+      .table-wrap {{ animation-delay: .12s; }}
+      .replay {{ animation: none; }}
+      .replay.in-view {{
+        animation: fadeUp .7s cubic-bezier(.22, .61, .36, 1) both;
+      }}
       @media (prefers-reduced-motion: reduce) {{
-        .reveal-el, .reveal-el.in-view,
-        div[data-testid="stPlotlyChart"],
-        div[data-testid="stPlotlyChart"].in-view,
-        div[data-testid="stSelectbox"],
-        div[data-testid="stSelectbox"].in-view {{
-          opacity: 1; transform: none; transition: none;
+        .hero, .kpi, .section-title, .section-sub,
+        div[data-testid="stPlotlyChart"], .table-wrap {{
+          animation: none;
         }}
       }}
       .badge-demo {{
@@ -548,36 +541,26 @@ components.html(
     <script>
     (function () {
       const doc = window.parent.document;
-      const reduced = window.parent.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const selector = [
-        ".hero",
-        ".kpi",
-        ".section-title",
-        ".section-sub",
-        "div[data-testid='stPlotlyChart']",
-        ".table-wrap",
-        "div[data-testid='stSelectbox']"
-      ].join(",");
-      const root =
-        doc.querySelector("[data-testid='stAppViewContainer'] section") ||
-        doc.querySelector("section.main") ||
-        null;
+      if (window.parent.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+      const selector = ".hero, .kpi, .section-title, .section-sub, div[data-testid='stPlotlyChart'], .table-wrap";
       function bind() {
         const nodes = doc.querySelectorAll(selector);
-        if (reduced) {
-          nodes.forEach(function (el) { el.classList.add("in-view"); });
-          return;
-        }
         const io = new IntersectionObserver(function (entries) {
           entries.forEach(function (entry) {
-            if (entry.isIntersecting) entry.target.classList.add("in-view");
-            else entry.target.classList.remove("in-view");
+            if (!entry.isIntersecting) {
+              entry.target.dataset.seen = "1";
+              entry.target.classList.remove("in-view", "replay");
+              return;
+            }
+            if (entry.target.dataset.seen !== "1") return;
+            entry.target.classList.add("replay");
+            void entry.target.offsetWidth;
+            entry.target.classList.add("in-view");
           });
-        }, { threshold: 0.12, root: root, rootMargin: "0px 0px -6% 0px" });
+        }, { threshold: 0.15, root: null, rootMargin: "0px 0px -8% 0px" });
         nodes.forEach(function (el) { io.observe(el); });
       }
-      setTimeout(bind, 60);
-      setTimeout(bind, 400);
+      setTimeout(bind, 80);
     })();
     </script>
     """,
