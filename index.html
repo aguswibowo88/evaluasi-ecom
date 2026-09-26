@@ -26,11 +26,13 @@
               300: "#E8D48B",
               400: "#D4AF37",
               500: "#C9A227",
+              700: "#8A6D1F",
             },
             teal: {
               300: "#5EEAD4",
               400: "#2DD4BF",
               500: "#14B8A6",
+              700: "#0F766E",
             },
           },
           fontFamily: {
@@ -57,15 +59,17 @@
   <header class="fixed top-0 inset-x-0 z-50 glass border-x-0 border-t-0 rounded-none">
     <nav class="mx-auto max-w-6xl px-4 sm:px-6 py-3 flex items-center justify-between gap-4" aria-label="Navigasi presentasi">
       <a href="#hero" class="flex items-center gap-3 shrink-0">
-        <span class="h-8 w-8 rounded-full border border-gold-400/40 bg-gold-400/10 grid place-items-center text-gold-300 text-xs font-semibold">EC</span>
-        <span class="hidden md:block text-xs tracking-[0.16em] uppercase text-slate-300">Executive Brief</span>
+        <span class="h-8 w-8 rounded-full border border-gold-400/40 bg-gold-400/10 grid place-items-center text-gold-700 text-xs font-semibold">EC</span>
+        <span class="hidden md:block text-xs tracking-[0.16em] uppercase text-slate-600">Executive Brief</span>
       </a>
-      <button type="button" id="backDashboard" class="text-[11px] tracking-[0.12em] uppercase text-gold-300/90 hover:text-gold-300">← Dashboard</button>
-      <ul class="flex items-center gap-3 sm:gap-5 text-[11px] sm:text-xs tracking-[0.1em] uppercase text-slate-400">
+      <button type="button" id="backDashboard" class="text-[11px] tracking-[0.12em] uppercase text-gold-700/90 hover:text-gold-700">← Dashboard</button>
+      <ul class="flex items-center gap-3 sm:gap-5 text-[11px] sm:text-xs tracking-[0.1em] uppercase text-slate-600">
         <li><a class="nav-link active" href="#hero">Awal</a></li>
         <li><a class="nav-link" href="#snapshot">Snapshot</a></li>
         <li><a class="nav-link" href="#tren">Tren</a></li>
         <li><a class="nav-link" href="#kinerja">Channel</a></li>
+        <li><a class="nav-link" href="#merek">Merek</a></li>
+        <li><a class="nav-link" href="#promo">Promo</a></li>
         <li><a class="nav-link" href="#saran">Saran</a></li>
       </ul>
     </nav>
@@ -74,25 +78,25 @@
   <main>
     <section id="hero" class="relative min-h-screen flex items-center pt-28 pb-16 px-4 sm:px-6 scroll-mt-28">
       <div class="mx-auto max-w-6xl w-full text-center">
-        <p class="hero-anim hero-delay-1 text-[11px] sm:text-xs tracking-[0.32em] uppercase text-teal-300/90 mb-6" data-aos="fade-up">
+        <p class="hero-anim hero-delay-1 text-[11px] sm:text-xs tracking-[0.32em] uppercase text-teal-700/90 mb-6" data-aos="fade-up">
           Confidential · YTD Agustus 2026 · Holt-Winters Outlook
         </p>
         <div data-aos="fade-up" data-aos-duration="1000">
-          <h1 class="font-display text-4xl sm:text-6xl lg:text-7xl font-semibold leading-[1.08] text-white">
+          <h1 class="font-display text-4xl sm:text-6xl lg:text-7xl font-semibold leading-[1.08] text-slate-900">
             Executive E-Commerce<br />Performance Report
           </h1>
         </div>
         <div data-aos="fade-up" data-aos-delay="150">
-          <p class="mt-6 text-base sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+          <p class="mt-6 text-base sm:text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
             Analisis Historis (Feb 2023 - Ags 2026) &amp; Prediksi Strategis
           </p>
         </div>
-        <div data-aos="fade-up" data-aos-delay="280" class="mt-10 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3 text-xs text-slate-400">
+        <div data-aos="fade-up" data-aos-delay="280" class="mt-10 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3 text-xs text-slate-600">
           <span id="chipPlatform" class="glass rounded-full px-4 py-2 max-w-full text-center">PT. Shopee International · Lead Channel</span>
           <span id="chipBrand" class="glass rounded-full px-4 py-2">Banana Boat · Lead Brand</span>
           <span id="chipForecast" class="glass rounded-full px-4 py-2">Forecast Sep 2026 +18%</span>
         </div>
-        <a href="#snapshot" class="scroll-cue mt-16 inline-flex flex-col items-center text-gold-300/80 text-[11px] tracking-[0.2em] uppercase">
+        <a href="#snapshot" class="scroll-cue mt-16 inline-flex flex-col items-center text-gold-700/80 text-[11px] tracking-[0.2em] uppercase">
           Gulir
           <svg class="mt-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7" />
@@ -104,31 +108,31 @@
     <section id="snapshot" class="relative py-20 px-4 sm:px-6 scroll-mt-28">
       <div class="mx-auto max-w-6xl">
         <div data-aos="fade-up">
-          <p class="text-xs tracking-[0.28em] uppercase text-gold-400 mb-3">01 — Ringkasan Eksekutif</p>
-          <h2 class="font-display text-3xl sm:text-5xl text-white">Snapshot Kinerja</h2>
-          <p class="mt-3 max-w-2xl text-slate-400">Tiga kontributor terbesar yang menopang portofolio e-commerce pada periode evaluasi.</p>
+          <p class="text-xs tracking-[0.28em] uppercase text-gold-700 mb-3">01 — Ringkasan Eksekutif</p>
+          <h2 class="font-display text-3xl sm:text-5xl text-slate-900">Snapshot Kinerja</h2>
+          <p class="mt-3 max-w-2xl text-slate-600">Tiga kontributor terbesar pada tahun berjalan 2026 (Jan–Ags).</p>
         </div>
 
         <div class="mt-10 grid gap-5 md:grid-cols-3">
           <article class="glass rounded-3xl p-7" data-aos="fade-up" data-aos-delay="0">
-            <p class="text-[11px] tracking-[0.2em] uppercase text-teal-300">Top Platform</p>
-            <h3 id="topPlatformName" class="font-display text-2xl sm:text-3xl text-white mt-4 leading-tight">PT. Shopee International</h3>
-            <p id="topPlatformValue" class="mt-6 text-gold-300 text-2xl font-semibold">Rp 7,6 Miliar</p>
-            <p class="mt-2 text-sm text-slate-400">Kanal distribusi dengan kontribusi absolut tertinggi.</p>
+            <p class="text-[11px] tracking-[0.2em] uppercase text-teal-700">Top Platform</p>
+            <h3 id="topPlatformName" class="font-display text-2xl sm:text-3xl text-slate-900 mt-4 leading-tight">PT. Shopee International</h3>
+            <p id="topPlatformValue" class="mt-6 text-gold-700 text-2xl font-semibold">Rp 1,82 Miliar</p>
+            <p class="mt-2 text-sm text-slate-600">Kanal distribusi dengan kontribusi absolut tertinggi.</p>
           </article>
 
           <article class="glass rounded-3xl p-7" data-aos="fade-up" data-aos-delay="140">
-            <p class="text-[11px] tracking-[0.2em] uppercase text-teal-300">Top Brand</p>
-            <h3 id="topBrandName" class="font-display text-2xl sm:text-3xl text-white mt-4 leading-tight">BANANA BOAT</h3>
-            <p id="topBrandValue" class="mt-6 text-gold-300 text-2xl font-semibold">Rp 6,8 Miliar</p>
-            <p class="mt-2 text-sm text-slate-400">Lini sun care mendominasi portofolio merek.</p>
+            <p class="text-[11px] tracking-[0.2em] uppercase text-teal-700">Top Brand</p>
+            <h3 id="topBrandName" class="font-display text-2xl sm:text-3xl text-slate-900 mt-4 leading-tight">BANANA BOAT</h3>
+            <p id="topBrandValue" class="mt-6 text-gold-700 text-2xl font-semibold">Rp 1,71 Miliar</p>
+            <p class="mt-2 text-sm text-slate-600">Lini sun care mendominasi portofolio merek.</p>
           </article>
 
           <article class="glass rounded-3xl p-7" data-aos="fade-up" data-aos-delay="280">
-            <p class="text-[11px] tracking-[0.2em] uppercase text-teal-300">Top Item</p>
-            <h3 id="topItemName" class="font-display text-2xl sm:text-3xl text-white mt-4 leading-tight">Sport SPF 50 90ML</h3>
-            <p id="topItemValue" class="mt-6 text-gold-300 text-2xl font-semibold">Rp 1,62 Miliar</p>
-            <p class="mt-2 text-sm text-slate-400">SKU hero dengan omset kumulatif terbesar.</p>
+            <p class="text-[11px] tracking-[0.2em] uppercase text-teal-700">Top Item</p>
+            <h3 id="topItemName" class="font-display text-2xl sm:text-3xl text-slate-900 mt-4 leading-tight">Sport SPF 50 90ML</h3>
+            <p id="topItemValue" class="mt-6 text-gold-700 text-2xl font-semibold">Rp 0,43 Miliar</p>
+            <p class="mt-2 text-sm text-slate-600">SKU hero dengan omset terbesar pada tahun berjalan.</p>
           </article>
         </div>
       </div>
@@ -137,17 +141,17 @@
     <section id="tren" class="relative py-20 px-4 sm:px-6 scroll-mt-28">
       <div class="mx-auto max-w-6xl">
         <div data-aos="fade-right">
-          <p class="text-xs tracking-[0.28em] uppercase text-gold-400 mb-3">02 — Tren &amp; Prediksi</p>
-          <h2 class="font-display text-3xl sm:text-5xl text-white">Grafik Tren Penjualan &amp; Prediksi</h2>
+          <p class="text-xs tracking-[0.28em] uppercase text-gold-700 mb-3">02 — Tren &amp; Prediksi</p>
+          <h2 class="font-display text-3xl sm:text-5xl text-slate-900">Grafik Tren Penjualan &amp; Prediksi</h2>
         </div>
 
         <div class="mt-8 glass-strong rounded-3xl p-5 sm:p-8" data-aos="fade-up">
           <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
             <div data-aos="fade-right">
-              <p class="text-sm text-slate-400">Omset bulanan · Feb 2023 – Ags 2026</p>
-              <p id="trendCaption" class="text-gold-300 font-medium mt-1">Agustus 2026: Rp 370.634.700 · Forecast Sep +18%</p>
+              <p class="text-sm text-slate-600">Omset bulanan · 3 tahun terakhir (Jan 24 – Ags 26)</p>
+              <p id="trendCaption" class="text-gold-700 font-medium mt-1">Agustus 2026: Rp 370.634.700 · Forecast Sep +18%</p>
             </div>
-            <div class="flex gap-4 text-xs text-slate-400">
+            <div class="flex gap-4 text-xs text-slate-600">
               <span class="inline-flex items-center gap-2"><span class="h-0.5 w-6 bg-teal-400"></span> Aktual</span>
               <span class="inline-flex items-center gap-2"><span class="h-0.5 w-6 border-t border-dashed border-gold-400"></span> Forecast</span>
             </div>
@@ -158,11 +162,11 @@
         </div>
 
         <div data-aos="fade-right" data-aos-delay="120" class="mt-8 max-w-4xl">
-          <p class="text-slate-300 text-lg leading-relaxed border-l-2 border-gold-400/60 pl-5">
+          <p class="text-slate-600 text-lg leading-relaxed border-l-2 border-gold-400/60 pl-5">
             Tren historis menunjukkan lonjakan musiman (seasonality) pada kuartal ketiga. Prediksi Holt-Winters mengindikasikan momentum pertumbuhan positif bulan depan.
           </p>
-          <p class="mt-4 text-sm text-slate-400 pl-5">
-            Titik puncak tercatat di pertengahan 2024 dan pertengahan 2025. Titik Agustus 2026 ditandai khusus, lalu dihubungkan garis putus ke proyeksi <strong id="forecastHighlight" class="text-gold-300 font-medium">September 2026: Rp 437.966.053</strong> (Projected <span id="forecastGrowth">+18%</span> Growth).
+          <p class="mt-4 text-sm text-slate-600 pl-5">
+            Titik puncak pada jendela tiga tahun ini tercatat di Sep 24 dan Mei 25. Titik Agustus 2026 ditandai khusus, lalu dihubungkan garis putus ke proyeksi <strong id="forecastHighlight" class="text-gold-700 font-medium">September 2026: Rp 437.966.053</strong> (Projected <span id="forecastGrowth">+18%</span> Growth).
           </p>
         </div>
       </div>
@@ -171,22 +175,22 @@
     <section id="kinerja" class="relative py-20 px-4 sm:px-6 scroll-mt-28">
       <div class="mx-auto max-w-6xl">
         <div data-aos="fade-up">
-          <p class="text-xs tracking-[0.28em] uppercase text-gold-400 mb-3">03 — Channel &amp; Brand</p>
-          <h2 class="font-display text-3xl sm:text-5xl text-white">Kinerja Channel &amp; Brand</h2>
+          <p class="text-xs tracking-[0.28em] uppercase text-gold-700 mb-3">03 — Channel &amp; Brand</p>
+          <h2 class="font-display text-3xl sm:text-5xl text-slate-900">Kinerja Channel &amp; Brand</h2>
         </div>
 
         <div class="mt-10 grid gap-6 lg:grid-cols-2">
           <article class="glass-strong rounded-3xl p-6 sm:p-8" data-aos="fade-up">
-            <h3 class="font-display text-2xl text-white">Platform Contribution</h3>
-            <p id="platformCaption" class="text-sm text-slate-400 mt-1 mb-6">Shopee 80% · Tokopedia 11% · Mitra Semeru 9%</p>
+            <h3 class="font-display text-2xl text-slate-900">Platform Contribution</h3>
+            <p id="platformCaption" class="text-sm text-slate-600 mt-1 mb-6">Shopee 80% · Tokopedia 11% · Mitra Semeru 9%</p>
             <div class="h-[300px]">
               <canvas id="platformChart" aria-label="Kontribusi platform Shopee, Tokopedia, dan Mitra Semeru"></canvas>
             </div>
           </article>
 
           <article class="glass-strong rounded-3xl p-6 sm:p-8" data-aos="fade-up" data-aos-delay="160">
-            <h3 class="font-display text-2xl text-white">Top 3 Brands</h3>
-            <p id="brandCaption" class="text-sm text-slate-400 mt-1 mb-6">Banana Boat 6,8M · Intuition 2,3M · Schick 0,59M</p>
+            <h3 class="font-display text-2xl text-slate-900">Top 3 Brands</h3>
+            <p id="brandCaption" class="text-sm text-slate-600 mt-1 mb-6">Banana Boat 6,8M · Intuition 2,3M · Schick 0,59M</p>
             <div class="h-[300px]">
               <canvas id="brandChart" aria-label="Omset tiga merek teratas"></canvas>
             </div>
@@ -194,9 +198,74 @@
         </div>
 
         <div data-aos="fade-right" class="mt-8 max-w-4xl">
-          <p class="text-slate-300 text-lg leading-relaxed border-l-2 border-teal-400/60 pl-5">
+          <p class="text-slate-600 text-lg leading-relaxed border-l-2 border-teal-400/60 pl-5">
             Shopee mendominasi saluran distribusi secara absolut. Portofolio didominasi oleh lini produk <em>sun care</em> (Banana Boat).
           </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="merek" class="relative py-20 px-4 sm:px-6 scroll-mt-28">
+      <div class="mx-auto max-w-6xl">
+        <div data-aos="fade-up">
+          <p class="text-xs tracking-[0.28em] uppercase text-gold-700 mb-3">Kinerja Merek</p>
+          <h2 class="font-display text-3xl sm:text-5xl text-slate-900">Performa Merek 3 Tahun Terakhir</h2>
+          <p class="mt-3 max-w-2xl text-slate-600">Omset tiap merek pada 2024, 2025, dan 2026 (sampai Agustus).</p>
+        </div>
+        <div class="mt-8 glass-strong rounded-3xl p-5 sm:p-8" data-aos="fade-up">
+          <div class="h-[340px] sm:h-[420px]">
+            <canvas id="brandYearChart" aria-label="Omset merek Banana Boat, Intuition, Schick, dan Freeman pada 2024 sampai 2026"></canvas>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="promo" class="relative py-20 px-4 sm:px-6 scroll-mt-28">
+      <div class="mx-auto max-w-6xl">
+        <div data-aos="fade-up">
+          <p class="text-xs tracking-[0.28em] uppercase text-gold-700 mb-3">Target Program Promosi</p>
+          <h2 class="font-display text-3xl sm:text-5xl text-slate-900">Item dengan Tren Penurunan</h2>
+          <p class="mt-3 max-w-3xl text-slate-600">Omset 12 bulan terakhir (Sep 25–Ags 26) dibanding 12 bulan sebelumnya (Sep 24–Ags 25). Hanya item yang masih terjual dan turun, diurutkan dari penurunan paling tajam.</p>
+        </div>
+        <div class="mt-8 glass-strong rounded-3xl overflow-hidden" data-aos="fade-up">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-sm">
+              <thead class="text-[11px] tracking-[0.14em] uppercase text-slate-500">
+                <tr class="border-b border-slate-200">
+                  <th class="px-5 py-4 font-medium">Item</th>
+                  <th class="px-5 py-4 font-medium text-right">Sep 24–Ags 25</th>
+                  <th class="px-5 py-4 font-medium text-right">Sep 25–Ags 26</th>
+                  <th class="px-5 py-4 font-medium text-right">Perubahan</th>
+                </tr>
+              </thead>
+              <tbody class="text-slate-700">
+<tr class="border-b border-slate-100"><td class="px-5 py-3">SC EXACTA 2 REG HANGER BIRU</td><td class="px-5 py-3 text-right tabular-nums">Rp 1.755.000</td><td class="px-5 py-3 text-right tabular-nums">Rp 378.200</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−78,45%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">SC Intuition Kit Lemon Berry Breeze</td><td class="px-5 py-3 text-right tabular-nums">Rp 265.429.500</td><td class="px-5 py-3 text-right tabular-nums">Rp 68.276.900</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−74,28%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">SC INTUITION KIT PURE NOURISHMENT UNGU</td><td class="px-5 py-3 text-right tabular-nums">Rp 156.729.800</td><td class="px-5 py-3 text-right tabular-nums">Rp 52.329.900</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−66,61%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">SC EYEBROW STYLING & FACIAL EXFOLIATION / TOUCH UP</td><td class="px-5 py-3 text-right tabular-nums">Rp 23.520.000</td><td class="px-5 py-3 text-right tabular-nums">Rp 8.221.900</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−65,04%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">HYDRO SENSE HYDRATE REFILL 4</td><td class="px-5 py-3 text-right tabular-nums">Rp 17.427.600</td><td class="px-5 py-3 text-right tabular-nums">Rp 6.120.000</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−64,88%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">SC XTREME 3 COMF + WOMEN 45 HT</td><td class="px-5 py-3 text-right tabular-nums">Rp 14.341.600</td><td class="px-5 py-3 text-right tabular-nums">Rp 6.086.600</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−57,56%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">Deep Tanning Oil SPF 2</td><td class="px-5 py-3 text-right tabular-nums">Rp 5.564.000</td><td class="px-5 py-3 text-right tabular-nums">Rp 2.402.000</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−56,83%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">SC EXACTA 2 REG HANGER YELLOW</td><td class="px-5 py-3 text-right tabular-nums">Rp 214.200</td><td class="px-5 py-3 text-right tabular-nums">Rp 108.300</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−49,44%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">Deep Tanning Oil</td><td class="px-5 py-3 text-right tabular-nums">Rp 28.512.000</td><td class="px-5 py-3 text-right tabular-nums">Rp 15.027.000</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−47,30%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">Ultramist Ultra Protect Lotion SPF 50</td><td class="px-5 py-3 text-right tabular-nums">Rp 131.064.000</td><td class="px-5 py-3 text-right tabular-nums">Rp 81.308.000</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−37,96%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">Simply Protect Baby Sunscreen Lotion SPF 50+</td><td class="px-5 py-3 text-right tabular-nums">Rp 49.020.000</td><td class="px-5 py-3 text-right tabular-nums">Rp 31.421.000</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−35,90%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">Protective Tanning Oil SPF 8</td><td class="px-5 py-3 text-right tabular-nums">Rp 2.028.000</td><td class="px-5 py-3 text-right tabular-nums">Rp 1.496.000</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−26,23%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">French Pink Clay Peel-Off Mask</td><td class="px-5 py-3 text-right tabular-nums">Rp 6.129.600</td><td class="px-5 py-3 text-right tabular-nums">Rp 4.597.200</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−25,00%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">Hawaiian Black Salt Peel-Off Mask</td><td class="px-5 py-3 text-right tabular-nums">Rp 3.831.000</td><td class="px-5 py-3 text-right tabular-nums">Rp 3.064.800</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−20,00%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">SC EXACTA 2 SEN 5+2</td><td class="px-5 py-3 text-right tabular-nums">Rp 17.492.800</td><td class="px-5 py-3 text-right tabular-nums">Rp 14.174.500</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−18,97%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">SC EXACTA 2 SEN 2+1 HIJAU</td><td class="px-5 py-3 text-right tabular-nums">Rp 16.042.500</td><td class="px-5 py-3 text-right tabular-nums">Rp 13.023.000</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−18,82%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">Aloe Vera Gel 230 ML</td><td class="px-5 py-3 text-right tabular-nums">Rp 41.496.000</td><td class="px-5 py-3 text-right tabular-nums">Rp 34.034.000</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−17,98%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">Deep Tanning Oil SPF 4</td><td class="px-5 py-3 text-right tabular-nums">Rp 15.576.000</td><td class="px-5 py-3 text-right tabular-nums">Rp 13.061.000</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−16,15%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">Ultra Protect SPF 50 90ML</td><td class="px-5 py-3 text-right tabular-nums">Rp 98.820.000</td><td class="px-5 py-3 text-right tabular-nums">Rp 90.827.000</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−8,09%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">Ultra Protect SPF 30</td><td class="px-5 py-3 text-right tabular-nums">Rp 14.496.000</td><td class="px-5 py-3 text-right tabular-nums">Rp 13.499.000</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−6,88%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">SC INTUITION KIT SENSITIVE CARE HIJAU</td><td class="px-5 py-3 text-right tabular-nums">Rp 363.720.200</td><td class="px-5 py-3 text-right tabular-nums">Rp 339.057.200</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−6,78%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">SC Intuition Kit Perfect Touch</td><td class="px-5 py-3 text-right tabular-nums">Rp 9.297.600</td><td class="px-5 py-3 text-right tabular-nums">Rp 8.794.700</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−5,41%</td></tr>
+<tr class="border-b border-slate-100"><td class="px-5 py-3">Clear Ultramist Sport Coolzone Spray SPF 50</td><td class="px-5 py-3 text-right tabular-nums">Rp 159.444.000</td><td class="px-5 py-3 text-right tabular-nums">Rp 151.650.000</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−4,89%</td></tr>
+<tr><td class="px-5 py-3">SC INTUITION REF SENSITIVE CARE HIJAU</td><td class="px-5 py-3 text-right tabular-nums">Rp 42.979.200</td><td class="px-5 py-3 text-right tabular-nums">Rp 41.009.400</td><td class="px-5 py-3 text-right font-medium text-rose-700 tabular-nums">−4,58%</td></tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </section>
@@ -204,24 +273,24 @@
     <section id="saran" class="relative py-20 px-4 sm:px-6 pb-28 scroll-mt-28">
       <div class="mx-auto max-w-4xl">
         <div data-aos="fade-up">
-          <p class="text-xs tracking-[0.28em] uppercase text-gold-400 mb-3">04 — Implikasi Strategis</p>
-          <h2 class="font-display text-3xl sm:text-5xl text-white">Saran &amp; Masukan Strategis</h2>
-          <p class="mt-3 text-slate-400">Tiga prioritas eksekusi menjelang momentum September dan peak season akhir tahun.</p>
+          <p class="text-xs tracking-[0.28em] uppercase text-gold-700 mb-3">04 — Implikasi Strategis</p>
+          <h2 class="font-display text-3xl sm:text-5xl text-slate-900">Saran &amp; Masukan Strategis</h2>
+          <p class="mt-3 text-slate-600">Tiga prioritas eksekusi menjelang momentum September dan peak season akhir tahun.</p>
         </div>
 
         <div class="mt-10 space-y-4" id="accordion">
           <article class="accordion-item glass rounded-2xl px-5 sm:px-7 py-5 open" data-aos="fade-up">
             <button type="button" class="accordion-trigger w-full flex items-start justify-between gap-4 text-left" aria-expanded="true">
               <span>
-                <span class="block text-[11px] tracking-[0.2em] uppercase text-teal-300">Poin 01</span>
-                <span id="insightTitle0" class="mt-1 block font-display text-2xl text-white">Alokasi Budget Marketing</span>
+                <span class="block text-[11px] tracking-[0.2em] uppercase text-teal-700">Poin 01</span>
+                <span id="insightTitle0" class="mt-1 block font-display text-2xl text-slate-900">Alokasi Budget Marketing</span>
               </span>
-              <svg class="chevron mt-2 h-5 w-5 text-gold-300 shrink-0 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <svg class="chevron mt-2 h-5 w-5 text-gold-700 shrink-0 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             <div class="accordion-body">
-              <p class="text-slate-300 leading-relaxed pb-1">
+              <p class="text-slate-600 leading-relaxed pb-1">
                 <span id="insightBody0">Alokasi Budget Marketing: Mengingat prediksi lonjakan omset ke Rp 437 Juta di bulan September, tingkatkan budget ads di Shopee khusus untuk produk Sport SPF 50.</span>
               </p>
             </div>
@@ -230,16 +299,16 @@
           <article class="accordion-item glass rounded-2xl px-5 sm:px-7 py-5" data-aos="fade-up" data-aos-delay="120">
             <button type="button" class="accordion-trigger w-full flex items-start justify-between gap-4 text-left" aria-expanded="false">
               <span>
-                <span class="block text-[11px] tracking-[0.2em] uppercase text-teal-300">Poin 02</span>
-                <span id="insightTitle1" class="mt-1 block font-display text-2xl text-white">Optimasi Tokopedia</span>
+                <span class="block text-[11px] tracking-[0.2em] uppercase text-teal-700">Poin 02</span>
+                <span id="insightTitle1" class="mt-1 block font-display text-2xl text-slate-900">Optimasi Mitra Semeru</span>
               </span>
-              <svg class="chevron mt-2 h-5 w-5 text-gold-300 shrink-0 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <svg class="chevron mt-2 h-5 w-5 text-gold-700 shrink-0 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             <div class="accordion-body">
-              <p class="text-slate-300 leading-relaxed pb-1">
-                <span id="insightBody1">Optimasi Tokopedia: Lakukan kampanye co-branding atau diskon khusus untuk menaikkan penetrasi pasar di Tokopedia yang saat ini tertinggal jauh.</span>
+              <p class="text-slate-600 leading-relaxed pb-1">
+                <span id="insightBody1">Optimasi Mitra Semeru: Lakukan kampanye co-branding atau diskon khusus untuk menaikkan penetrasi pasar di Mitra Semeru, kanal aktif berikutnya dengan kinerja terendah setelah Tokopedia ditutup.</span>
               </p>
             </div>
           </article>
@@ -247,15 +316,15 @@
           <article class="accordion-item glass rounded-2xl px-5 sm:px-7 py-5" data-aos="fade-up" data-aos-delay="240">
             <button type="button" class="accordion-trigger w-full flex items-start justify-between gap-4 text-left" aria-expanded="false">
               <span>
-                <span class="block text-[11px] tracking-[0.2em] uppercase text-teal-300">Poin 03</span>
-                <span id="insightTitle2" class="mt-1 block font-display text-2xl text-white">Manajemen Inventaris</span>
+                <span class="block text-[11px] tracking-[0.2em] uppercase text-teal-700">Poin 03</span>
+                <span id="insightTitle2" class="mt-1 block font-display text-2xl text-slate-900">Manajemen Inventaris</span>
               </span>
-              <svg class="chevron mt-2 h-5 w-5 text-gold-300 shrink-0 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+              <svg class="chevron mt-2 h-5 w-5 text-gold-700 shrink-0 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M19 9l-7 7-7-7" />
               </svg>
             </button>
             <div class="accordion-body">
-              <p class="text-slate-300 leading-relaxed pb-1">
+              <p class="text-slate-600 leading-relaxed pb-1">
                 <span id="insightBody2">Manajemen Inventaris: Amankan stok produk 'Simply Protect Kids' dan 'Sport SPF 50' menjelang peak season akhir tahun.</span>
               </p>
             </div>
@@ -265,7 +334,7 @@
     </section>
   </main>
 
-  <footer class="relative border-t border-white/5 py-8 px-4 text-center text-xs text-slate-500">
+  <footer class="relative border-t border-slate-200 py-8 px-4 text-center text-xs text-slate-500">
     <div data-aos="fade-up">
       Executive E-Commerce Performance Report · Sumber: <span id="sourceFile">DATA E-COM.xlsx</span> · Forecast Sep 2026
     </div>

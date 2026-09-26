@@ -1,22 +1,22 @@
 html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
     body {
       font-family: Outfit, system-ui, sans-serif;
-      background: #06101C;
-      color: #E2E8F0;
+      background: #F4F7FB;
+      color: #1E293B;
     }
     .font-display { font-family: "Cormorant Garamond", Georgia, serif; }
 
     .bg-atmosphere {
       background:
-        radial-gradient(1200px 600px at 12% -10%, rgba(20, 184, 166, 0.16), transparent 55%),
-        radial-gradient(900px 500px at 92% 8%, rgba(212, 175, 55, 0.12), transparent 50%),
+        radial-gradient(1200px 600px at 12% -10%, rgba(20, 184, 166, 0.14), transparent 55%),
+        radial-gradient(900px 500px at 92% 8%, rgba(212, 175, 55, 0.16), transparent 50%),
         radial-gradient(800px 500px at 70% 90%, rgba(45, 212, 191, 0.08), transparent 45%),
-        linear-gradient(180deg, #06101C 0%, #0A1628 42%, #071422 100%);
+        linear-gradient(180deg, #F7FAFC 0%, #EEF3F8 48%, #F8F6F1 100%);
     }
     .bg-grid {
       background-image:
-        linear-gradient(rgba(148, 163, 184, 0.045) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(148, 163, 184, 0.045) 1px, transparent 1px);
+        linear-gradient(rgba(15, 39, 68, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(15, 39, 68, 0.045) 1px, transparent 1px);
       background-size: 56px 56px;
       mask-image: radial-gradient(ellipse at center, black 35%, transparent 80%);
     }
@@ -42,21 +42,21 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
     .hero-delay-4 { animation-delay: 0.6s; }
 
     .glass {
-      background: linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(10, 22, 40, 0.55));
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.84));
       backdrop-filter: blur(22px);
       -webkit-backdrop-filter: blur(22px);
-      border: 1px solid rgba(232, 212, 139, 0.22);
-      box-shadow: 0 20px 50px rgba(3, 8, 16, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(15, 39, 68, 0.08);
+      box-shadow: 0 16px 40px rgba(15, 39, 68, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.9);
     }
     .glass-strong {
-      background: linear-gradient(165deg, rgba(255, 255, 255, 0.07), rgba(10, 22, 40, 0.58));
+      background: linear-gradient(165deg, rgba(255, 255, 255, 0.98), rgba(248, 250, 252, 0.92));
       backdrop-filter: blur(26px);
       -webkit-backdrop-filter: blur(26px);
-      border: 1px solid rgba(45, 212, 191, 0.2);
-      box-shadow: 0 24px 60px rgba(3, 8, 16, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(20, 184, 166, 0.22);
+      box-shadow: 0 18px 44px rgba(15, 39, 68, 0.08), inset 0 1px 0 rgba(255, 255, 255, 1);
     }
 
-    .nav-link.active { color: #E8D48B; }
+    .nav-link.active { color: #8A6D1F; }
     .nav-link.active::after {
       transform: scaleX(1);
     }
@@ -77,11 +77,11 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
       transition: max-height 0.45s cubic-bezier(0.22, 1, 0.36, 1), padding 0.35s ease;
     }
     .accordion-item.open .accordion-body {
-      max-height: 240px;
+      max-height: 320px;
       padding-top: 0.25rem;
     }
     .accordion-item.open .chevron { transform: rotate(180deg); }
-    .accordion-item.open { border-color: rgba(212, 175, 55, 0.35); }
+    .accordion-item.open { border-color: rgba(138, 109, 31, 0.4); }
 
     .scroll-cue {
       animation: bounce-soft 2.2s ease-in-out infinite;
@@ -92,9 +92,9 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
     }
 
     ::-webkit-scrollbar { width: 10px; }
-    ::-webkit-scrollbar-track { background: #06101C; }
+    ::-webkit-scrollbar-track { background: #F4F7FB; }
     ::-webkit-scrollbar-thumb {
-      background: #16304A;
+      background: #CBD5E1;
       border-radius: 999px;
-      border: 2px solid #06101C;
+      border: 2px solid #F4F7FB;
     }
