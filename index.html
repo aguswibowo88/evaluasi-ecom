@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Executive E-Commerce Performance Report</title>
+  <meta name="description" content="Analisis historis Februari 2023–Agustus 2026 dan prediksi strategis September 2026." />
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            navy: {
+              950: "#06101C",
+              900: "#0A1628",
+              800: "#102033",
+              700: "#16304A",
+            },
+            gold: {
+              300: "#E8D48B",
+              400: "#D4AF37",
+              500: "#C9A227",
+            },
+            teal: {
+              300: "#5EEAD4",
+              400: "#2DD4BF",
+              500: "#14B8A6",
+            },
+          },
+          fontFamily: {
+            display: ["Cormorant Garamond", "Georgia", "serif"],
+            sans: ["Outfit", "system-ui", "sans-serif"],
+          },
+        },
+      },
+    };
+  </script>
+
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+
+</head>
+<body class="bg-atmosphere min-h-screen antialiased">
+  <div class="fixed inset-0 bg-grid pointer-events-none"></div>
+  <div class="orb w-72 h-72 bg-teal-500/20 top-24 left-10"></div>
+  <div class="orb w-80 h-80 bg-gold-400/10 bottom-10 right-8" style="animation-delay: -7s;"></div>
+
+  <header class="fixed top-0 inset-x-0 z-50 glass border-x-0 border-t-0 rounded-none">
+    <nav class="mx-auto max-w-6xl px-4 sm:px-6 py-3 flex items-center justify-between gap-4" aria-label="Navigasi presentasi">
+      <a href="#hero" class="flex items-center gap-3 shrink-0">
+        <span class="h-8 w-8 rounded-full border border-gold-400/40 bg-gold-400/10 grid place-items-center text-gold-300 text-xs font-semibold">EC</span>
+        <span class="hidden md:block text-xs tracking-[0.16em] uppercase text-slate-300">Executive Brief</span>
+      </a>
+      <button type="button" id="backDashboard" class="text-[11px] tracking-[0.12em] uppercase text-gold-300/90 hover:text-gold-300">← Dashboard</button>
+      <ul class="flex items-center gap-3 sm:gap-5 text-[11px] sm:text-xs tracking-[0.1em] uppercase text-slate-400">
+        <li><a class="nav-link active" href="#hero">Awal</a></li>
+        <li><a class="nav-link" href="#snapshot">Snapshot</a></li>
+        <li><a class="nav-link" href="#tren">Tren</a></li>
+        <li><a class="nav-link" href="#kinerja">Channel</a></li>
+        <li><a class="nav-link" href="#saran">Saran</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section id="hero" class="relative min-h-screen flex items-center pt-28 pb-16 px-4 sm:px-6 scroll-mt-28">
+      <div class="mx-auto max-w-6xl w-full text-center">
+        <p class="hero-anim hero-delay-1 text-[11px] sm:text-xs tracking-[0.32em] uppercase text-teal-300/90 mb-6" data-aos="fade-up">
+          Confidential · YTD Agustus 2026 · Holt-Winters Outlook
+        </p>
+        <div data-aos="fade-up" data-aos-duration="1000">
+          <h1 class="font-display text-4xl sm:text-6xl lg:text-7xl font-semibold leading-[1.08] text-white">
+            Executive E-Commerce<br />Performance Report
+          </h1>
+        </div>
+        <div data-aos="fade-up" data-aos-delay="150">
+          <p class="mt-6 text-base sm:text-xl text-slate-300 max-w-3xl mx-auto leading-relaxed">
+            Analisis Historis (Feb 2023 - Ags 2026) &amp; Prediksi Strategis
+          </p>
+        </div>
+        <div data-aos="fade-up" data-aos-delay="280" class="mt-10 flex flex-col sm:flex-row flex-wrap items-center justify-center gap-3 text-xs text-slate-400">
+          <span id="chipPlatform" class="glass rounded-full px-4 py-2 max-w-full text-center">PT. Shopee International · Lead Channel</span>
+          <span id="chipBrand" class="glass rounded-full px-4 py-2">Banana Boat · Lead Brand</span>
+          <span id="chipForecast" class="glass rounded-full px-4 py-2">Forecast Sep 2026 +18%</span>
+        </div>
+        <a href="#snapshot" class="scroll-cue mt-16 inline-flex flex-col items-center text-gold-300/80 text-[11px] tracking-[0.2em] uppercase">
+          Gulir
+          <svg class="mt-2 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 9l-7 7-7-7" />
+          </svg>
+        </a>
+      </div>
+    </section>
+
+    <section id="snapshot" class="relative py-20 px-4 sm:px-6 scroll-mt-28">
+      <div class="mx-auto max-w-6xl">
+        <div data-aos="fade-up">
+          <p class="text-xs tracking-[0.28em] uppercase text-gold-400 mb-3">01 — Ringkasan Eksekutif</p>
+          <h2 class="font-display text-3xl sm:text-5xl text-white">Snapshot Kinerja</h2>
+          <p class="mt-3 max-w-2xl text-slate-400">Tiga kontributor terbesar yang menopang portofolio e-commerce pada periode evaluasi.</p>
+        </div>
+
+        <div class="mt-10 grid gap-5 md:grid-cols-3">
+          <article class="glass rounded-3xl p-7" data-aos="fade-up" data-aos-delay="0">
+            <p class="text-[11px] tracking-[0.2em] uppercase text-teal-300">Top Platform</p>
+            <h3 id="topPlatformName" class="font-display text-2xl sm:text-3xl text-white mt-4 leading-tight">PT. Shopee International</h3>
+            <p id="topPlatformValue" class="mt-6 text-gold-300 text-2xl font-semibold">Rp 7,6 Miliar</p>
+            <p class="mt-2 text-sm text-slate-400">Kanal distribusi dengan kontribusi absolut tertinggi.</p>
+          </article>
+
+          <article class="glass rounded-3xl p-7" data-aos="fade-up" data-aos-delay="140">
+            <p class="text-[11px] tracking-[0.2em] uppercase text-teal-300">Top Brand</p>
+            <h3 id="topBrandName" class="font-display text-2xl sm:text-3xl text-white mt-4 leading-tight">BANANA BOAT</h3>
+            <p id="topBrandValue" class="mt-6 text-gold-300 text-2xl font-semibold">Rp 6,8 Miliar</p>
+            <p class="mt-2 text-sm text-slate-400">Lini sun care mendominasi portofolio merek.</p>
+          </article>
+
+          <article class="glass rounded-3xl p-7" data-aos="fade-up" data-aos-delay="280">
+            <p class="text-[11px] tracking-[0.2em] uppercase text-teal-300">Top Item</p>
+            <h3 id="topItemName" class="font-display text-2xl sm:text-3xl text-white mt-4 leading-tight">Sport SPF 50 90ML</h3>
+            <p id="topItemValue" class="mt-6 text-gold-300 text-2xl font-semibold">Rp 1,62 Miliar</p>
+            <p class="mt-2 text-sm text-slate-400">SKU hero dengan omset kumulatif terbesar.</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="tren" class="relative py-20 px-4 sm:px-6 scroll-mt-28">
+      <div class="mx-auto max-w-6xl">
+        <div data-aos="fade-right">
+          <p class="text-xs tracking-[0.28em] uppercase text-gold-400 mb-3">02 — Tren &amp; Prediksi</p>
+          <h2 class="font-display text-3xl sm:text-5xl text-white">Grafik Tren Penjualan &amp; Prediksi</h2>
+        </div>
+
+        <div class="mt-8 glass-strong rounded-3xl p-5 sm:p-8" data-aos="fade-up">
+          <div class="flex flex-wrap items-end justify-between gap-4 mb-6">
+            <div data-aos="fade-right">
+              <p class="text-sm text-slate-400">Omset bulanan · Feb 2023 – Ags 2026</p>
+              <p id="trendCaption" class="text-gold-300 font-medium mt-1">Agustus 2026: Rp 370.634.700 · Forecast Sep +18%</p>
+            </div>
+            <div class="flex gap-4 text-xs text-slate-400">
+              <span class="inline-flex items-center gap-2"><span class="h-0.5 w-6 bg-teal-400"></span> Aktual</span>
+              <span class="inline-flex items-center gap-2"><span class="h-0.5 w-6 border-t border-dashed border-gold-400"></span> Forecast</span>
+            </div>
+          </div>
+          <div class="h-[340px] sm:h-[420px]">
+            <canvas id="trendChart" aria-label="Grafik tren penjualan historis dan prediksi September 2026"></canvas>
+          </div>
+        </div>
+
+        <div data-aos="fade-right" data-aos-delay="120" class="mt-8 max-w-4xl">
+          <p class="text-slate-300 text-lg leading-relaxed border-l-2 border-gold-400/60 pl-5">
+            Tren historis menunjukkan lonjakan musiman (seasonality) pada kuartal ketiga. Prediksi Holt-Winters mengindikasikan momentum pertumbuhan positif bulan depan.
+          </p>
+          <p class="mt-4 text-sm text-slate-400 pl-5">
+            Titik puncak tercatat di pertengahan 2024 dan pertengahan 2025. Titik Agustus 2026 ditandai khusus, lalu dihubungkan garis putus ke proyeksi <strong id="forecastHighlight" class="text-gold-300 font-medium">September 2026: Rp 437.966.053</strong> (Projected <span id="forecastGrowth">+18%</span> Growth).
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="kinerja" class="relative py-20 px-4 sm:px-6 scroll-mt-28">
+      <div class="mx-auto max-w-6xl">
+        <div data-aos="fade-up">
+          <p class="text-xs tracking-[0.28em] uppercase text-gold-400 mb-3">03 — Channel &amp; Brand</p>
+          <h2 class="font-display text-3xl sm:text-5xl text-white">Kinerja Channel &amp; Brand</h2>
+        </div>
+
+        <div class="mt-10 grid gap-6 lg:grid-cols-2">
+          <article class="glass-strong rounded-3xl p-6 sm:p-8" data-aos="fade-up">
+            <h3 class="font-display text-2xl text-white">Platform Contribution</h3>
+            <p id="platformCaption" class="text-sm text-slate-400 mt-1 mb-6">Shopee 80% · Tokopedia 11% · Mitra Semeru 9%</p>
+            <div class="h-[300px]">
+              <canvas id="platformChart" aria-label="Kontribusi platform Shopee, Tokopedia, dan Mitra Semeru"></canvas>
+            </div>
+          </article>
+
+          <article class="glass-strong rounded-3xl p-6 sm:p-8" data-aos="fade-up" data-aos-delay="160">
+            <h3 class="font-display text-2xl text-white">Top 3 Brands</h3>
+            <p id="brandCaption" class="text-sm text-slate-400 mt-1 mb-6">Banana Boat 6,8M · Intuition 2,3M · Schick 0,59M</p>
+            <div class="h-[300px]">
+              <canvas id="brandChart" aria-label="Omset tiga merek teratas"></canvas>
+            </div>
+          </article>
+        </div>
+
+        <div data-aos="fade-right" class="mt-8 max-w-4xl">
+          <p class="text-slate-300 text-lg leading-relaxed border-l-2 border-teal-400/60 pl-5">
+            Shopee mendominasi saluran distribusi secara absolut. Portofolio didominasi oleh lini produk <em>sun care</em> (Banana Boat).
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="saran" class="relative py-20 px-4 sm:px-6 pb-28 scroll-mt-28">
+      <div class="mx-auto max-w-4xl">
+        <div data-aos="fade-up">
+          <p class="text-xs tracking-[0.28em] uppercase text-gold-400 mb-3">04 — Implikasi Strategis</p>
+          <h2 class="font-display text-3xl sm:text-5xl text-white">Saran &amp; Masukan Strategis</h2>
+          <p class="mt-3 text-slate-400">Tiga prioritas eksekusi menjelang momentum September dan peak season akhir tahun.</p>
+        </div>
+
+        <div class="mt-10 space-y-4" id="accordion">
+          <article class="accordion-item glass rounded-2xl px-5 sm:px-7 py-5 open" data-aos="fade-up">
+            <button type="button" class="accordion-trigger w-full flex items-start justify-between gap-4 text-left" aria-expanded="true">
+              <span>
+                <span class="block text-[11px] tracking-[0.2em] uppercase text-teal-300">Poin 01</span>
+                <span id="insightTitle0" class="mt-1 block font-display text-2xl text-white">Alokasi Budget Marketing</span>
+              </span>
+              <svg class="chevron mt-2 h-5 w-5 text-gold-300 shrink-0 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div class="accordion-body">
+              <p class="text-slate-300 leading-relaxed pb-1">
+                <span id="insightBody0">Alokasi Budget Marketing: Mengingat prediksi lonjakan omset ke Rp 437 Juta di bulan September, tingkatkan budget ads di Shopee khusus untuk produk Sport SPF 50.</span>
+              </p>
+            </div>
+          </article>
+
+          <article class="accordion-item glass rounded-2xl px-5 sm:px-7 py-5" data-aos="fade-up" data-aos-delay="120">
+            <button type="button" class="accordion-trigger w-full flex items-start justify-between gap-4 text-left" aria-expanded="false">
+              <span>
+                <span class="block text-[11px] tracking-[0.2em] uppercase text-teal-300">Poin 02</span>
+                <span id="insightTitle1" class="mt-1 block font-display text-2xl text-white">Optimasi Tokopedia</span>
+              </span>
+              <svg class="chevron mt-2 h-5 w-5 text-gold-300 shrink-0 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div class="accordion-body">
+              <p class="text-slate-300 leading-relaxed pb-1">
+                <span id="insightBody1">Optimasi Tokopedia: Lakukan kampanye co-branding atau diskon khusus untuk menaikkan penetrasi pasar di Tokopedia yang saat ini tertinggal jauh.</span>
+              </p>
+            </div>
+          </article>
+
+          <article class="accordion-item glass rounded-2xl px-5 sm:px-7 py-5" data-aos="fade-up" data-aos-delay="240">
+            <button type="button" class="accordion-trigger w-full flex items-start justify-between gap-4 text-left" aria-expanded="false">
+              <span>
+                <span class="block text-[11px] tracking-[0.2em] uppercase text-teal-300">Poin 03</span>
+                <span id="insightTitle2" class="mt-1 block font-display text-2xl text-white">Manajemen Inventaris</span>
+              </span>
+              <svg class="chevron mt-2 h-5 w-5 text-gold-300 shrink-0 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            <div class="accordion-body">
+              <p class="text-slate-300 leading-relaxed pb-1">
+                <span id="insightBody2">Manajemen Inventaris: Amankan stok produk 'Simply Protect Kids' dan 'Sport SPF 50' menjelang peak season akhir tahun.</span>
+              </p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="relative border-t border-white/5 py-8 px-4 text-center text-xs text-slate-500">
+    <div data-aos="fade-up">
+      Executive E-Commerce Performance Report · Sumber: <span id="sourceFile">DATA E-COM.xlsx</span> · Forecast Sep 2026
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,100 @@
+html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
+    body {
+      font-family: Outfit, system-ui, sans-serif;
+      background: #06101C;
+      color: #E2E8F0;
+    }
+    .font-display { font-family: "Cormorant Garamond", Georgia, serif; }
+
+    .bg-atmosphere {
+      background:
+        radial-gradient(1200px 600px at 12% -10%, rgba(20, 184, 166, 0.16), transparent 55%),
+        radial-gradient(900px 500px at 92% 8%, rgba(212, 175, 55, 0.12), transparent 50%),
+        radial-gradient(800px 500px at 70% 90%, rgba(45, 212, 191, 0.08), transparent 45%),
+        linear-gradient(180deg, #06101C 0%, #0A1628 42%, #071422 100%);
+    }
+    .bg-grid {
+      background-image:
+        linear-gradient(rgba(148, 163, 184, 0.045) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148, 163, 184, 0.045) 1px, transparent 1px);
+      background-size: 56px 56px;
+      mask-image: radial-gradient(ellipse at center, black 35%, transparent 80%);
+    }
+    .orb {
+      position: absolute;
+      border-radius: 9999px;
+      filter: blur(60px);
+      pointer-events: none;
+      animation: drift 18s ease-in-out infinite;
+    }
+    @keyframes drift {
+      0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+      50% { transform: translate3d(24px, -18px, 0) scale(1.08); }
+    }
+    @keyframes fade-in-up {
+      from { opacity: 0; transform: translateY(28px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .hero-anim { animation: fade-in-up 1.05s cubic-bezier(0.22, 1, 0.36, 1) both; }
+    .hero-delay-1 { animation-delay: 0.12s; }
+    .hero-delay-2 { animation-delay: 0.28s; }
+    .hero-delay-3 { animation-delay: 0.44s; }
+    .hero-delay-4 { animation-delay: 0.6s; }
+
+    .glass {
+      background: linear-gradient(160deg, rgba(255, 255, 255, 0.08), rgba(10, 22, 40, 0.55));
+      backdrop-filter: blur(22px);
+      -webkit-backdrop-filter: blur(22px);
+      border: 1px solid rgba(232, 212, 139, 0.22);
+      box-shadow: 0 20px 50px rgba(3, 8, 16, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    }
+    .glass-strong {
+      background: linear-gradient(165deg, rgba(255, 255, 255, 0.07), rgba(10, 22, 40, 0.58));
+      backdrop-filter: blur(26px);
+      -webkit-backdrop-filter: blur(26px);
+      border: 1px solid rgba(45, 212, 191, 0.2);
+      box-shadow: 0 24px 60px rgba(3, 8, 16, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+    }
+
+    .nav-link.active { color: #E8D48B; }
+    .nav-link.active::after {
+      transform: scaleX(1);
+    }
+    .nav-link::after {
+      content: "";
+      display: block;
+      height: 1px;
+      margin-top: 4px;
+      background: #D4AF37;
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s ease;
+    }
+
+    .accordion-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.45s cubic-bezier(0.22, 1, 0.36, 1), padding 0.35s ease;
+    }
+    .accordion-item.open .accordion-body {
+      max-height: 240px;
+      padding-top: 0.25rem;
+    }
+    .accordion-item.open .chevron { transform: rotate(180deg); }
+    .accordion-item.open { border-color: rgba(212, 175, 55, 0.35); }
+
+    .scroll-cue {
+      animation: bounce-soft 2.2s ease-in-out infinite;
+    }
+    @keyframes bounce-soft {
+      0%, 100% { transform: translateY(0); opacity: 0.75; }
+      50% { transform: translateY(8px); opacity: 1; }
+    }
+
+    ::-webkit-scrollbar { width: 10px; }
+    ::-webkit-scrollbar-track { background: #06101C; }
+    ::-webkit-scrollbar-thumb {
+      background: #16304A;
+      border-radius: 999px;
+      border: 2px solid #06101C;
+    }
