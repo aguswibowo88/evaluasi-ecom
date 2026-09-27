@@ -91,6 +91,11 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
       50% { transform: translateY(8px); opacity: 1; }
     }
 
+    #promo tr.overlap-top10 td {
+      background-color: #DC2626;
+      color: #FDE047;
+    }
+
     ::-webkit-scrollbar { width: 10px; }
     ::-webkit-scrollbar-track { background: #F4F7FB; }
     ::-webkit-scrollbar-thumb {
