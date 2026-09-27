@@ -101,8 +101,12 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
     }
 
     #promo tr.overlap-top10 td {
-      background-color: #DC2626;
-      color: #FDE047;
+      background-color: #FEE2E2;
+      color: #B91C1C;
+    }
+    #promo td.text-rose-700,
+    #promo tr.overlap-top10 td.text-rose-700 {
+      color: #991B1B;
     }
 
     ::-webkit-scrollbar { width: 10px; }
