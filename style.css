@@ -40,6 +40,15 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
     .hero-delay-2 { animation-delay: 0.28s; }
     .hero-delay-3 { animation-delay: 0.44s; }
     .hero-delay-4 { animation-delay: 0.6s; }
+    .hero-credit {
+      margin-top: 0.85rem;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-style: italic;
+      font-weight: 500;
+      font-size: 1.05rem;
+      letter-spacing: 0.12em;
+      color: #8A6D1F;
+    }
 
     .glass {
       background: linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(255, 255, 255, 0.84));
