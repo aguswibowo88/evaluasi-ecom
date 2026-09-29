@@ -109,6 +109,45 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
       color: #991B1B;
     }
 
+    /* Kolom nominal Top 10 dan tren penurunan tetap satu baris di HP/tablet */
+    #top10 table td.tabular-nums,
+    #promo table td.tabular-nums {
+      white-space: nowrap;
+    }
+    @media (max-width: 1024px) {
+      #top10 table,
+      #promo table {
+        font-size: 0.75rem;
+      }
+      #top10 table th,
+      #top10 table td,
+      #promo table th,
+      #promo table td {
+        padding-left: 0.55rem;
+        padding-right: 0.55rem;
+      }
+      #top10 table thead,
+      #promo table thead {
+        letter-spacing: 0.06em;
+        font-size: 0.65rem;
+      }
+    }
+    @media (max-width: 640px) {
+      #top10 table,
+      #promo table {
+        font-size: 0.68rem;
+      }
+      #top10 table th,
+      #top10 table td,
+      #promo table th,
+      #promo table td {
+        padding-left: 0.4rem;
+        padding-right: 0.4rem;
+        padding-top: 0.55rem;
+        padding-bottom: 0.55rem;
+      }
+    }
+
     ::-webkit-scrollbar { width: 10px; }
     ::-webkit-scrollbar-track { background: #F4F7FB; }
     ::-webkit-scrollbar-thumb {
