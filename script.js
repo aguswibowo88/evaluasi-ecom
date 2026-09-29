@@ -233,11 +233,55 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
       "2026": [1.711, 0.627, 0.145, 0.053],
     };
 
+    function formatBrandGrowth(current, prior) {
+      if (!prior) return "";
+      const ratio = (current - prior) / prior;
+      const text = Math.abs(ratio * 100).toFixed(1).replace(".", ",");
+      return (ratio < 0 ? "−" : "+") + text + "%";
+    }
+
+    const brandYearGrowthPlugin = {
+      id: "brandYearGrowth",
+      afterDatasetsDraw(chart) {
+        const years = Object.values(brandYearSeries);
+        const { ctx } = chart;
+        const narrow = chart.width < 800;
+        const fontSize = narrow ? 9 : 11;
+        ctx.save();
+        ctx.font = "600 " + fontSize + "px Outfit, sans-serif";
+        chart.data.datasets.forEach((dataset, datasetIndex) => {
+          if (datasetIndex === 0) return;
+          const meta = chart.getDatasetMeta(datasetIndex);
+          if (meta.hidden) return;
+          meta.data.forEach((bar, index) => {
+            const label = formatBrandGrowth(years[datasetIndex][index], years[datasetIndex - 1][index]);
+            if (!label) return;
+            ctx.fillStyle = label.charAt(0) === "−" ? "#991B1B" : "#0F766E";
+            ctx.save();
+            if (narrow) {
+              ctx.translate(bar.x, bar.y - 3);
+              ctx.rotate(-Math.PI / 2);
+              ctx.textAlign = "left";
+              ctx.textBaseline = "middle";
+              ctx.fillText(label, 0, 0);
+            } else {
+              ctx.textAlign = "center";
+              ctx.textBaseline = "bottom";
+              ctx.fillText(label, bar.x, bar.y - 4);
+            }
+            ctx.restore();
+          });
+        });
+        ctx.restore();
+      },
+    };
+
     function buildBrandYearChart() {
       const ctx = document.getElementById("brandYearChart");
       const palette = ["#0F766E", "#D4AF37", "#334155"];
       return new Chart(ctx, {
         type: "bar",
+        plugins: [brandYearGrowthPlugin],
         data: {
           labels: brandYearLabels,
           datasets: Object.entries(brandYearSeries).map(([year, data], index) => ({
@@ -251,6 +295,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          layout: { padding: { top: 22 } },
           animation: { duration: 1500, easing: "easeOutQuart" },
           plugins: {
             legend: {
@@ -270,6 +315,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
             x: { grid: { display: false }, ticks: { color: "#1E293B" } },
             y: {
               beginAtZero: true,
+              grace: "24%",
               grid: { color: "rgba(148,163,184,0.2)" },
               ticks: {
                 color: "#475569",
