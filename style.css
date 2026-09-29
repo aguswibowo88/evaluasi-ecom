@@ -114,6 +114,10 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
     #promo table td.tabular-nums {
       white-space: nowrap;
     }
+    /* Header rentang tanggal di tabel tren penurunan tetap satu baris */
+    #promo thead th.text-right {
+      white-space: nowrap;
+    }
     @media (max-width: 1024px) {
       #top10 table,
       #promo table {
