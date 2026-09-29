@@ -372,7 +372,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
       });
     });
 
-    const sections = ["hero", "snapshot", "tren", "kinerja", "merek", "promo", "saran"];
+    const sections = ["hero", "snapshot", "tren", "kinerja", "merek", "promo", "saran", "ai"];
     const navLinks = document.querySelectorAll(".nav-link");
     const sectionObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
