@@ -1,0 +1,12 @@
+.git
+.env
+.env.*
+node_modules
+server.js
+worker.js
+wrangler.jsonc
+package.json
+package-lock.json
+functions
+.gitignore
+.assetsignore
