@@ -239,6 +239,24 @@ function buildKpis(parsed) {
 
   const platform = ranked((row) => row.platform);
   const brand = ranked((row) => row.brand).map((item, index) => ({ ...item, rank: index + 1 }));
+  const brandYearMap = new Map();
+  rows.forEach((row) => {
+    if (!brandYearMap.has(row.brand)) brandYearMap.set(row.brand, new Map());
+    const years = brandYearMap.get(row.brand);
+    const current = years.get(row.tahun) || { revenue: 0, qty: 0 };
+    current.revenue += row.omset;
+    current.qty += row.qty;
+    years.set(row.tahun, current);
+  });
+  const brand_yearly = [...brandYearMap.entries()].map(([name, years]) => ({
+    name,
+    total: [...years.values()].reduce((sum, value) => sum + value.revenue, 0),
+    years: [...years.entries()].sort((a, b) => a[0] - b[0]).map(([year, value]) => ({
+      year,
+      revenue: money(value.revenue),
+      qty: money(value.qty),
+    })),
+  })).sort((a, b) => b.total - a.total).slice(0, 15).map(({ name, years }) => ({ name, years }));
 
   const itemNow = groupSum(recent, (row) => row.item);
   const itemBefore = groupSum(prior, (row) => row.item);
@@ -294,6 +312,7 @@ function buildKpis(parsed) {
     yearly,
     platform,
     brand,
+    brand_yearly,
     product: {
       window: `${labelOf(recentStart)}–${labelOf(maxYm)}`,
       top10_by_revenue: items.filter((item) => item.revenue > 0).sort((a, b) => b.revenue - a.revenue).slice(0, 10)
@@ -328,7 +347,16 @@ function selectContext(kpis, question) {
   }
   if (want(/tahun|yoy|banding|compare|versus| vs |2023|2024|2025|2026/)) context.yearly = kpis.yearly;
   if (want(/platform|channel|kanal|shopee|tokopedia|semeru/)) context.platform = kpis.platform;
-  if (want(/merek|brand|merk/)) context.brand = kpis.brand;
+  const namedBrands = (kpis.brand_yearly || []).filter((item) => {
+    const name = String(item.name || "").toLowerCase();
+    return name.length > 2 && q.includes(name);
+  });
+  if (want(/merek|brand|merk/) || namedBrands.length) {
+    context.brand = namedBrands.length
+      ? (kpis.brand || []).filter((item) => namedBrands.some((brand) => brand.name === item.name))
+      : kpis.brand;
+    context.brand_yearly = namedBrands.length ? namedBrands : kpis.brand_yearly;
+  }
   if (want(/produk|item|sku|barang|baru|mati|dead/)) context.product = kpis.product;
   if (!context.monthly && !context.yearly && !context.platform && !context.brand && !context.product) {
     context.monthly = kpis.monthly;
@@ -336,6 +364,7 @@ function selectContext(kpis, question) {
     context.yearly = kpis.yearly;
     context.platform = kpis.platform;
     context.brand = kpis.brand;
+    context.brand_yearly = kpis.brand_yearly;
     context.product = kpis.product;
   }
   return context;
@@ -353,7 +382,12 @@ async function loadKpis(sheetUrl) {
   if (sheetCache.kpis && sheetCache.url === url && Date.now() - sheetCache.at < SHEET_TTL_MS) {
     return sheetCache.kpis;
   }
-  const response = await fetch(url, { headers: { accept: "text/csv" } });
+  const response = await fetch(url, {
+    headers: {
+      accept: "text/csv",
+      "user-agent": "Mozilla/5.0 (compatible; EvaluasiEcomAnalyst/1.0)",
+    },
+  });
   if (!response.ok) throw new Error("Sheet tidak dapat dibaca.");
   const kpis = buildKpis(rowsFromCsv(await response.text()));
   sheetCache.at = Date.now();
