@@ -50,11 +50,19 @@
     result.hidden = false;
   }
 
+  function analystEndpoint() {
+    const host = location.hostname;
+    if (host === "127.0.0.1" || host === "localhost" || host.endsWith("workers.dev")) {
+      return new URL("api/analyst", location.href).href;
+    }
+    return "https://evaluasi-ecom.8-aguswibowo.workers.dev/api/analyst";
+  }
+
   async function run(text, full) {
     setBusy(true);
     result.hidden = true;
     try {
-      const response = await fetch(new URL("api/analyst", window.location.href), {
+      const response = await fetch(analystEndpoint(), {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ question: text, full: Boolean(full) }),
