@@ -422,7 +422,11 @@
           <button type="submit" id="aiAsk" class="rounded-full border border-gold-400/50 px-5 py-2.5 text-sm font-medium text-gold-700">Tanya AI</button>
         </form>
         <p id="aiStatus" class="mt-4 text-sm text-slate-600" role="status"></p>
-        <div id="aiResult" class="mt-6 space-y-4" hidden>
+        <div id="aiResult" class="mt-6" hidden>
+          <article id="aiAnswerCard" class="glass-strong rounded-2xl p-5 sm:p-6" hidden>
+            <p id="aiAnswer" class="text-slate-700 leading-relaxed whitespace-pre-wrap"></p>
+          </article>
+          <div id="aiReport" class="space-y-4">
           <article class="glass-strong rounded-2xl p-5 sm:p-6">
             <p class="text-[11px] tracking-[0.2em] uppercase text-gold-700">Ringkasan</p>
             <p id="aiSummary" class="mt-2 text-slate-700 leading-relaxed"></p>
@@ -459,6 +463,7 @@
             <p class="text-[11px] tracking-[0.2em] uppercase text-teal-700">Rekomendasi</p>
             <ul id="aiRecommendations" class="mt-2 list-disc pl-5 text-slate-700 space-y-1"></ul>
           </article>
+          </div>
         </div>
       </div>
     </section>
@@ -471,7 +476,7 @@
   </footer>
 
   <script src="script.js?v=platform-growth"></script>
-  <script src="ai-analyst.js?v=2"></script>
+  <script src="ai-analyst.js?v=3"></script>
 
 </body>
 </html>

@@ -5,7 +5,10 @@
   const form = document.getElementById("aiAskForm");
   const question = document.getElementById("aiQuestion");
   const ask = document.getElementById("aiAsk");
-  if (!status || !result || !analyze || !form || !question || !ask) return;
+  const answerCard = document.getElementById("aiAnswerCard");
+  const answer = document.getElementById("aiAnswer");
+  const report = document.getElementById("aiReport");
+  if (!status || !result || !analyze || !form || !question || !ask || !answerCard || !answer || !report) return;
 
   const fields = {
     summary: document.getElementById("aiSummary"),
@@ -37,6 +40,24 @@
     });
   }
 
+  function exclusiveAnswer(text) {
+    const value = String(text || "").trim();
+    if (value === "Siapakah pembuat program ini?") {
+      return "Program ini dibuat oleh Mr.Agus Wibowo atau sering dipanggil dengan Coach Awey. Program ini mulai dibuat pada bulan September 2026 untuk tujuan Analisa data E-Comm PT. Bahtera Cipta Raga Prima dan masih terus dalam proses pengembangan.";
+    }
+    if (value === "Program ini dibuat menggunakan apa?") {
+      return "Program ini dibuat dengan menggunakan HTML, JS, CSS, Back End dan Front End, disimpan ke Github dan menghubungkan AI dengan kode API dari Google Studio AI.";
+    }
+    return "";
+  }
+
+  function showAnswer(text) {
+    answer.textContent = text;
+    answerCard.hidden = false;
+    report.hidden = true;
+    result.hidden = false;
+  }
+
   function render(data) {
     fields.summary.textContent = data.summary || "";
     fields.trend_analysis.textContent = data.trend_analysis || "";
@@ -47,6 +68,8 @@
     fillList(lists.anomalies, data.anomalies);
     fillList(lists.possible_explanations, data.possible_explanations);
     fillList(lists.recommendations, data.recommendations);
+    answerCard.hidden = true;
+    report.hidden = false;
     result.hidden = false;
   }
 
@@ -61,6 +84,15 @@
   async function run(text, full) {
     setBusy(true);
     result.hidden = true;
+    const preset = full ? "" : exclusiveAnswer(text);
+    if (preset) {
+      status.textContent = "";
+      showAnswer(preset);
+      analyze.disabled = false;
+      ask.disabled = false;
+      question.disabled = false;
+      return;
+    }
     try {
       const response = await fetch(analystEndpoint(), {
         method: "POST",
@@ -73,7 +105,8 @@
         return;
       }
       status.textContent = "";
-      render(data);
+      if (!full && data.answer) showAnswer(data.answer);
+      else render(data);
     } catch (error) {
       status.textContent = "AI Analyst sedang tidak dapat digunakan. Silakan coba lagi.";
     } finally {

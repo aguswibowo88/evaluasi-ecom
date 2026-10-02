@@ -475,6 +475,71 @@ async function askGemini(apiKey, question, context) {
   throw lastError || new Error("Gemini tidak menjawab.");
 }
 
+function exclusiveAnswer(question) {
+  const text = String(question || "").trim();
+  if (text === "Siapakah pembuat program ini?") {
+    return "Program ini dibuat oleh Mr.Agus Wibowo atau sering dipanggil dengan Coach Awey. Program ini mulai dibuat pada bulan September 2026 untuk tujuan Analisa data E-Comm PT. Bahtera Cipta Raga Prima dan masih terus dalam proses pengembangan.";
+  }
+  if (text === "Program ini dibuat menggunakan apa?") {
+    return "Program ini dibuat dengan menggunakan HTML, JS, CSS, Back End dan Front End, disimpan ke Github dan menghubungkan AI dengan kode API dari Google Studio AI.";
+  }
+  return "";
+}
+
+function answerPrompt() {
+  return [
+    "You are an E-Commerce Data Analyst.",
+    "Answer only the user's question in a detailed, conversational Bahasa Indonesia response.",
+    "Use ONLY the provided backend data. Do not make up numbers.",
+    "Do not return JSON and do not write a structured report.",
+    "Do not add sections such as Ringkasan, Temuan utama, Tren, Platform, Merek, Produk, Anomali, Kemungkinan penjelasan, or Rekomendasi.",
+    "Differentiate between factual data and hypothesis.",
+    `If data is insufficient to explain a "why", you MUST state: "${INSUFFICIENT}"`,
+    "Amounts are Indonesian Rupiah. Do not invent transactions or average transaction value when those fields are null.",
+  ].join("\n");
+}
+
+async function askGeminiText(apiKey, question, context) {
+  const key = `text:${cacheKey(question, context)}`;
+  const cached = answerCache.get(key);
+  if (cached && Date.now() < cached.exp) return cached.value;
+  const body = {
+    systemInstruction: { parts: [{ text: answerPrompt() }] },
+    contents: [{
+      role: "user",
+      parts: [{ text: `Pertanyaan:\n${question}\n\nData KPI:\n${JSON.stringify(context)}` }],
+    }],
+    generationConfig: { temperature: 0.2 },
+  };
+  let lastError = null;
+  for (const model of MODELS) {
+    try {
+      const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-goog-api-key": apiKey,
+        },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(25000),
+      });
+      if (!response.ok) {
+        lastError = new Error(`Gemini ${model} ${response.status}`);
+        continue;
+      }
+      const payload = await response.json();
+      const text = payload?.candidates?.[0]?.content?.parts?.map((part) => part.text || "").join("").trim();
+      if (!text) throw new Error("Gemini tidak menjawab.");
+      const result = { answer: text };
+      answerCache.set(key, { at: Date.now(), exp: Date.now() + ANSWER_TTL_MS, value: result });
+      return result;
+    } catch (error) {
+      lastError = error;
+    }
+  }
+  throw lastError || new Error("Gemini tidak menjawab.");
+}
+
 export async function handleAnalystRequest(request, env) {
   try {
     const apiKey = String(env.apiKey || "").trim();
@@ -485,9 +550,13 @@ export async function handleAnalystRequest(request, env) {
     const payload = await request.json();
     const question = String(payload.question || "").trim().slice(0, 500);
     if (!question) return { status: 400, body: { error: "Tuliskan pertanyaan untuk AI Analyst." } };
+    const preset = payload.full ? "" : exclusiveAnswer(question);
+    if (preset) return { status: 200, body: { answer: preset } };
     const kpis = await loadKpis();
     const context = selectContext(kpis, payload.full ? "" : question);
-    const result = await askGemini(apiKey, question, context);
+    const result = payload.full
+      ? await askGemini(apiKey, question, context)
+      : await askGeminiText(apiKey, question, context);
     return { status: 200, body: result };
   } catch (error) {
     console.error(error && error.message ? error.message : "Analyst error");
