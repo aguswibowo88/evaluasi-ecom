@@ -511,6 +511,9 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
 
     function buildSlaChart() {
       const canvas = document.getElementById("slaChart");
+      const yearCanvas = document.getElementById("slaYearChart");
+      const detailCanvas = document.getElementById("slaDetailChart");
+      const kpiHost = document.getElementById("slaKpis");
       return fetch(SHEET_CSV_URL)
         .then((response) => {
           if (!response.ok) throw new Error("sheet");
@@ -539,6 +542,16 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
             if (String(line[statusIndex] || "").trim() === "DIKIRIM") current.sent += amount;
             byYear.set(year, current);
           });
+          const palette = {
+            Shopee: "#0F766E",
+            Tokopedia: "#0369A1",
+            "Mitra Semeru": "#B8860B",
+            "Alfa Gift": "#C2410C",
+            "Berhasil Tumbuh": "#7C3AED",
+            Lazada: "#0E7490",
+            Blibli: "#334155",
+          };
+          const fallback = ["#0F766E", "#0369A1", "#B8860B", "#C2410C", "#7C3AED", "#0E7490"];
           const platforms = [...totals.entries()]
             .map(([name, byYear]) => ({
               name,
@@ -550,99 +563,136 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
               }),
             }))
             .filter((item) => item.total > 0)
-            .sort((a, b) => b.total - a.total);
-          if (!platforms.length) return;
-          const sentColors = ["#0F766E", "#D4AF37", "#334155"];
-          const openColors = ["rgba(15,118,110,0.28)", "rgba(212,175,55,0.45)", "rgba(51,65,85,0.28)"];
-          const slaLabelPlugin = {
-            id: "slaPercentLabels",
-            afterDatasetsDraw(chart) {
-              const { ctx } = chart;
-              ctx.save();
-              ctx.font = "600 10px Outfit, sans-serif";
-              ctx.fillStyle = "#1E293B";
-              ctx.textAlign = "center";
-              ctx.textBaseline = "middle";
-              years.forEach((year, yearIndex) => {
-                const meta = chart.getDatasetMeta(yearIndex * 2);
-                if (!meta || meta.hidden) return;
-                meta.data.forEach((bar, index) => {
-                  const value = platforms[index].sla[yearIndex];
-                  if (value == null || !bar || Number.isNaN(bar.y)) return;
-                  const label = String(value).replace(".", ",") + "%";
-                  const height = Math.abs(bar.base - bar.y);
-                  if (height >= 16) ctx.fillText(label, bar.x, (bar.y + bar.base) / 2);
-                  else ctx.fillText(label, bar.x, Math.min(bar.y, bar.base) - 8);
-                });
-              });
-              ctx.restore();
+            .sort((a, b) => b.total - a.total)
+            .map((item, index) => ({ ...item, color: palette[item.name] || fallback[index % fallback.length] }));
+          if (!platforms.length || !canvas || !yearCanvas || !detailCanvas || !kpiHost) return;
+          const pctText = (value) => (value == null ? "—" : String(value).replace(".", ",") + "%");
+          const present = platforms.flatMap((item) => item.sla.filter((value) => value != null));
+          const axisMin = present.length ? Math.max(0, Math.floor((Math.min(...present) - 4) / 5) * 5) : 0;
+          const legend = {
+            position: "bottom",
+            labels: { color: "#334155", padding: 12, usePointStyle: true, pointStyle: "circle", boxWidth: 8 },
+          };
+          const pctTooltip = {
+            ...tooltipTheme,
+            callbacks: {
+              label(ctx) {
+                if (ctx.raw == null) return "";
+                return " " + ctx.dataset.label + ": " + pctText(ctx.raw);
+              },
             },
           };
-          const datasets = [];
-          years.forEach((year, index) => {
-            datasets.push({
-              label: year + " DIKIRIM",
-              stack: String(year),
-              data: platforms.map((item) => item.sla[index]),
-              backgroundColor: sentColors[index],
-              borderRadius: 6,
-              maxBarThickness: 22,
-            });
-            datasets.push({
-              label: year + " TIDAK DIKIRIM",
-              stack: String(year),
-              data: platforms.map((item) => (item.sla[index] == null ? null : Math.round((100 - item.sla[index]) * 10) / 10)),
-              backgroundColor: openColors[index],
-              borderRadius: 6,
-              maxBarThickness: 22,
-            });
+          const yScale = {
+            min: axisMin,
+            max: 100,
+            grid: { color: "rgba(148,163,184,0.2)" },
+            ticks: {
+              color: "#475569",
+              callback(value) { return value + "%"; },
+            },
+          };
+          kpiHost.replaceChildren();
+          platforms.forEach((item) => {
+            const card = document.createElement("article");
+            card.className = "sla-card";
+            const known = item.sla.filter((value) => value != null);
+            const low = known.length ? Math.min(...known) : 0;
+            const high = known.length ? Math.max(...known) : 1;
+            const span = high - low || 1;
+            const points = item.sla.map((value, index) => {
+              if (value == null) return null;
+              const x = 4 + (index * 112) / (item.sla.length - 1);
+              const y = 4 + (1 - (value - low) / span) * 26;
+              return x.toFixed(1) + "," + y.toFixed(1);
+            }).filter(Boolean).join(" ");
+            const safeName = item.name.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch]));
+            card.innerHTML = [
+              "<header><span><i class=\"sla-dot\" style=\"background:" + item.color + "\"></i><strong>" + safeName.toUpperCase() + " SLA</strong></span><em>2026</em></header>",
+              "<b>" + pctText(item.sla[2]) + "</b>",
+              "<svg viewBox=\"0 0 120 34\" aria-hidden=\"true\"><polyline points=\"" + points + "\" fill=\"none\" stroke=\"" + item.color + "\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" /></svg>",
+            ].join("");
+            kpiHost.appendChild(card);
           });
-          return new Chart(canvas, {
-            type: "bar",
-            plugins: [slaLabelPlugin],
+          const lineChart = new Chart(canvas, {
+            type: "line",
             data: {
-              labels: platforms.map((item) => item.name),
-              datasets,
+              labels: years.map(String),
+              datasets: platforms.map((item) => ({
+                label: item.name,
+                data: item.sla,
+                borderColor: item.color,
+                backgroundColor: item.color + "22",
+                pointBackgroundColor: item.color,
+                pointBorderColor: "#fff",
+                pointRadius: 4,
+                pointHoverRadius: 6,
+                borderWidth: 2.5,
+                tension: 0.35,
+                fill: false,
+                spanGaps: false,
+              })),
             },
             options: {
               responsive: true,
               maintainAspectRatio: false,
-              layout: { padding: { top: 16 } },
               animation: { duration: 1500, easing: "easeOutQuart" },
-              plugins: {
-                legend: {
-                  position: "bottom",
-                  labels: { color: "#334155", padding: 14, usePointStyle: true, pointStyle: "circle", boxWidth: 8 },
-                },
-                tooltip: {
-                  ...tooltipTheme,
-                  callbacks: {
-                    label(ctx) {
-                      if (ctx.raw == null) return "";
-                      return " " + ctx.dataset.label + ": " + String(ctx.raw).replace(".", ",") + "%";
-                    },
-                  },
-                },
-              },
+              plugins: { legend, tooltip: pctTooltip },
               scales: {
-                x: {
-                  stacked: true,
-                  grid: { display: false },
-                  ticks: { color: "#1E293B", maxRotation: 40, minRotation: 0, autoSkip: false },
-                },
-                y: {
-                  stacked: true,
-                  min: 0,
-                  max: 100,
-                  grid: { color: "rgba(148,163,184,0.2)" },
-                  ticks: {
-                    color: "#475569",
-                    callback(value) { return value + "%"; },
-                  },
-                },
+                x: { grid: { display: false }, ticks: { color: "#1E293B" } },
+                y: yScale,
               },
             },
           });
+          new Chart(yearCanvas, {
+            type: "bar",
+            data: {
+              labels: years.map(String),
+              datasets: platforms.map((item) => ({
+                label: item.name,
+                data: item.sla,
+                backgroundColor: item.color,
+                borderRadius: 6,
+                maxBarThickness: 18,
+              })),
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: { duration: 1500, easing: "easeOutQuart" },
+              plugins: { legend, tooltip: pctTooltip },
+              scales: {
+                x: { grid: { display: false }, ticks: { color: "#1E293B" } },
+                y: yScale,
+              },
+            },
+          });
+          new Chart(detailCanvas, {
+            type: "bar",
+            data: {
+              labels: platforms.map((item) => item.name),
+              datasets: years.map((year, index) => ({
+                label: String(year),
+                data: platforms.map((item) => item.sla[index]),
+                backgroundColor: ["#0F766E", "#D4AF37", "#334155"][index],
+                borderRadius: 6,
+                maxBarThickness: 16,
+              })),
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: { duration: 1500, easing: "easeOutQuart" },
+              plugins: { legend, tooltip: pctTooltip },
+              scales: {
+                x: {
+                  grid: { display: false },
+                  ticks: { color: "#1E293B", maxRotation: 40, minRotation: 0, autoSkip: false },
+                },
+                y: yScale,
+              },
+            },
+          });
+          return lineChart;
         })
         .catch(() => {});
     }

@@ -152,6 +152,91 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
       }
     }
 
+    .sla-board {
+      background:
+        radial-gradient(420px 180px at 8% 0%, rgba(20, 184, 166, 0.16), transparent 70%),
+        radial-gradient(360px 180px at 100% 8%, rgba(212, 175, 55, 0.14), transparent 68%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.97), rgba(241, 248, 250, 0.94));
+      border: 1px solid rgba(15, 118, 110, 0.16);
+      border-radius: 1.75rem;
+      box-shadow: 0 18px 44px rgba(15, 39, 68, 0.08);
+      padding: 1.25rem;
+    }
+    .sla-head { text-align: center; margin-bottom: 1.1rem; }
+    .sla-head h2 {
+      font-family: Outfit, system-ui, sans-serif;
+      font-size: clamp(1.05rem, 2.2vw, 1.55rem);
+      font-weight: 650;
+      letter-spacing: 0.04em;
+      color: #0F2744;
+    }
+    .sla-head p { margin-top: 0.3rem; color: #64748B; font-size: 0.95rem; }
+    .sla-top, .sla-bottom { display: grid; gap: 0.9rem; }
+    .sla-bottom { margin-top: 0.9rem; }
+    .sla-panel {
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid rgba(15, 39, 68, 0.06);
+      border-radius: 1.25rem;
+      box-shadow: 0 10px 28px rgba(15, 39, 68, 0.05);
+      padding: 0.9rem 0.95rem 0.7rem;
+      min-width: 0;
+    }
+    .sla-panel h3 {
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #334155;
+      font-weight: 650;
+      margin-bottom: 0.35rem;
+    }
+    .sla-chart-lg { height: 320px; }
+    .sla-chart-md { height: 280px; }
+    .sla-kpis { display: grid; grid-template-columns: 1fr; gap: 0.7rem; align-content: start; }
+    .sla-card {
+      background: rgba(255, 255, 255, 0.9);
+      border: 1px solid rgba(15, 39, 68, 0.06);
+      border-radius: 1.1rem;
+      box-shadow: 0 8px 22px rgba(15, 39, 68, 0.05);
+      padding: 0.75rem 0.8rem 0.65rem;
+      min-width: 0;
+    }
+    .sla-card header { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; }
+    .sla-card header span { display: flex; align-items: center; gap: 0.4rem; min-width: 0; }
+    .sla-card header strong {
+      font-size: 0.68rem;
+      letter-spacing: 0.06em;
+      color: #334155;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .sla-card header em {
+      font-style: normal;
+      font-size: 0.68rem;
+      color: #64748B;
+      flex: none;
+    }
+    .sla-dot { width: 0.55rem; height: 0.55rem; border-radius: 999px; flex: none; }
+    .sla-card b {
+      display: block;
+      margin-top: 0.25rem;
+      font-size: 1.45rem;
+      line-height: 1.1;
+      font-weight: 650;
+      color: #0F2744;
+    }
+    .sla-card svg { display: block; width: 100%; height: 34px; margin-top: 0.3rem; }
+    @media (min-width: 640px) and (max-width: 1023px) {
+      .sla-kpis { grid-template-columns: 1fr 1fr; }
+    }
+    @media (min-width: 1024px) {
+      .sla-board { padding: 1.5rem 1.4rem 1.2rem; }
+      .sla-top { grid-template-columns: minmax(0, 1.7fr) 270px; }
+      .sla-kpis { grid-template-columns: 1fr; }
+      .sla-bottom { grid-template-columns: 1fr 1fr; }
+      .sla-chart-lg { height: 360px; }
+    }
+
     ::-webkit-scrollbar { width: 10px; }
     ::-webkit-scrollbar-track { background: #F4F7FB; }
     ::-webkit-scrollbar-thumb {
