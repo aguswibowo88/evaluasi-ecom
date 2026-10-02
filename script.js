@@ -509,12 +509,151 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
         .catch(() => {});
     }
 
+    function buildSlaChart() {
+      const canvas = document.getElementById("slaChart");
+      return fetch(SHEET_CSV_URL)
+        .then((response) => {
+          if (!response.ok) throw new Error("sheet");
+          return response.text();
+        })
+        .then((csv) => {
+          const table = parseSheetCsv(csv);
+          const header = table[0].map((name) => String(name).trim().toUpperCase());
+          const yearIndex = header.indexOf("TAHUN");
+          const platformIndex = header.indexOf("NM_PLG");
+          const statusIndex = header.indexOf("STAT_PO");
+          const revenueIndex = header.findIndex((name) => name.includes("BRUTTO"));
+          if ([yearIndex, platformIndex, statusIndex, revenueIndex].some((index) => index < 0)) return;
+          const years = [2024, 2025, 2026];
+          const totals = new Map();
+          table.slice(1).forEach((line) => {
+            const year = Number(line[yearIndex]);
+            if (!years.includes(year)) return;
+            const platform = platformShortName(String(line[platformIndex] || "").trim());
+            if (!platform) return;
+            if (!totals.has(platform)) totals.set(platform, new Map());
+            const byYear = totals.get(platform);
+            const current = byYear.get(year) || { sent: 0, all: 0 };
+            const amount = sheetAmount(line[revenueIndex]);
+            current.all += amount;
+            if (String(line[statusIndex] || "").trim() === "DIKIRIM") current.sent += amount;
+            byYear.set(year, current);
+          });
+          const platforms = [...totals.entries()]
+            .map(([name, byYear]) => ({
+              name,
+              total: years.reduce((sum, year) => sum + ((byYear.get(year) || { all: 0 }).all), 0),
+              sla: years.map((year) => {
+                const row = byYear.get(year);
+                if (!row || !row.all) return null;
+                return Math.round((row.sent / row.all) * 1000) / 10;
+              }),
+            }))
+            .filter((item) => item.total > 0)
+            .sort((a, b) => b.total - a.total);
+          if (!platforms.length) return;
+          const sentColors = ["#0F766E", "#D4AF37", "#334155"];
+          const openColors = ["rgba(15,118,110,0.28)", "rgba(212,175,55,0.45)", "rgba(51,65,85,0.28)"];
+          const slaLabelPlugin = {
+            id: "slaPercentLabels",
+            afterDatasetsDraw(chart) {
+              const { ctx } = chart;
+              ctx.save();
+              ctx.font = "600 10px Outfit, sans-serif";
+              ctx.fillStyle = "#1E293B";
+              ctx.textAlign = "center";
+              ctx.textBaseline = "middle";
+              years.forEach((year, yearIndex) => {
+                const meta = chart.getDatasetMeta(yearIndex * 2);
+                if (!meta || meta.hidden) return;
+                meta.data.forEach((bar, index) => {
+                  const value = platforms[index].sla[yearIndex];
+                  if (value == null || !bar || Number.isNaN(bar.y)) return;
+                  const label = String(value).replace(".", ",") + "%";
+                  const height = Math.abs(bar.base - bar.y);
+                  if (height >= 16) ctx.fillText(label, bar.x, (bar.y + bar.base) / 2);
+                  else ctx.fillText(label, bar.x, Math.min(bar.y, bar.base) - 8);
+                });
+              });
+              ctx.restore();
+            },
+          };
+          const datasets = [];
+          years.forEach((year, index) => {
+            datasets.push({
+              label: year + " DIKIRIM",
+              stack: String(year),
+              data: platforms.map((item) => item.sla[index]),
+              backgroundColor: sentColors[index],
+              borderRadius: 6,
+              maxBarThickness: 22,
+            });
+            datasets.push({
+              label: year + " TIDAK DIKIRIM",
+              stack: String(year),
+              data: platforms.map((item) => (item.sla[index] == null ? null : Math.round((100 - item.sla[index]) * 10) / 10)),
+              backgroundColor: openColors[index],
+              borderRadius: 6,
+              maxBarThickness: 22,
+            });
+          });
+          return new Chart(canvas, {
+            type: "bar",
+            plugins: [slaLabelPlugin],
+            data: {
+              labels: platforms.map((item) => item.name),
+              datasets,
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              layout: { padding: { top: 16 } },
+              animation: { duration: 1500, easing: "easeOutQuart" },
+              plugins: {
+                legend: {
+                  position: "bottom",
+                  labels: { color: "#334155", padding: 14, usePointStyle: true, pointStyle: "circle", boxWidth: 8 },
+                },
+                tooltip: {
+                  ...tooltipTheme,
+                  callbacks: {
+                    label(ctx) {
+                      if (ctx.raw == null) return "";
+                      return " " + ctx.dataset.label + ": " + String(ctx.raw).replace(".", ",") + "%";
+                    },
+                  },
+                },
+              },
+              scales: {
+                x: {
+                  stacked: true,
+                  grid: { display: false },
+                  ticks: { color: "#1E293B", maxRotation: 40, minRotation: 0, autoSkip: false },
+                },
+                y: {
+                  stacked: true,
+                  min: 0,
+                  max: 100,
+                  grid: { color: "rgba(148,163,184,0.2)" },
+                  ticks: {
+                    color: "#475569",
+                    callback(value) { return value + "%"; },
+                  },
+                },
+              },
+            },
+          });
+        })
+        .catch(() => {});
+    }
+
     const builders = {
       trendChart: buildTrendChart,
       platformChart: buildPlatformChart,
       brandChart: buildBrandChart,
       brandYearChart: buildBrandYearChart,
       platformYearChart: buildPlatformYearChart,
+      slaChart: buildSlaChart,
     };
 
     const observer = new IntersectionObserver((entries) => {
@@ -555,7 +694,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
       });
     });
 
-    const sections = ["hero", "snapshot", "tren", "kinerja", "merek", "promo", "saran", "ai"];
+    const sections = ["hero", "snapshot", "tren", "kinerja", "sla", "merek", "promo", "saran", "ai"];
     const navLinks = document.querySelectorAll(".nav-link");
     const sectionObserver = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {

@@ -40,14 +40,23 @@
     });
   }
 
+  const AUTHOR_ANSWER = "Program ini dibuat oleh Mr.Agus Wibowo atau sering dipanggil dengan Coach Awey. Program ini mulai dibuat pada bulan September 2026 untuk tujuan Analisa data E-Comm PT. Bahtera Cipta Raga Prima dan masih terus dikembangkan.";
+  const TECH_ANSWER = "Program ini dibuat dengan menggunakan HTML, JS, CSS, Back End dan Front End, disimpan ke Github dan menghubungkan AI dengan kode API dari Google Studio AI.";
+
   function exclusiveAnswer(text) {
-    const value = String(text || "").trim();
-    if (value === "Siapakah pembuat program ini?") {
-      return "Program ini dibuat oleh Mr.Agus Wibowo atau sering dipanggil dengan Coach Awey. Program ini mulai dibuat pada bulan September 2026 untuk tujuan Analisa data E-Comm PT. Bahtera Cipta Raga Prima dan masih terus dalam proses pengembangan.";
+    const value = String(text || "").toLowerCase().replace(/[?!.,]/g, " ").replace(/\s+/g, " ").trim();
+    const aboutProgram = /(program|aplikasi|website|web site|sistem|presentasi|\bini\b)/.test(value);
+    const asksAuthor = /(siapa(kah)?|who)\b/.test(value) && /(pembuat|membuat|buat|bikin|pengembang|developer|creator|author|pencipta|pemilik)/.test(value);
+    const asksAuthorAlt = aboutProgram && /(pembuat|pengembang|developer|creator)\b/.test(value);
+    if ((asksAuthor && aboutProgram) || asksAuthorAlt || (aboutProgram && /(dibuat|diciptakan|dirancang)\b/.test(value) && /siapa/.test(value))) {
+      return AUTHOR_ANSWER;
     }
-    if (value === "Program ini dibuat menggunakan apa?") {
-      return "Program ini dibuat dengan menggunakan HTML, JS, CSS, Back End dan Front End, disimpan ke Github dan menghubungkan AI dengan kode API dari Google Studio AI.";
-    }
+    const asksTech = aboutProgram && (
+      /(teknologi|tech stack|bahasa pemrograman|framework|\btools?\b)/.test(value)
+      || /(dibuat|buat|dikembangkan|bikin).{0,40}(menggunakan|memakai|pakai|pake|dengan)/.test(value)
+      || /(menggunakan|memakai|pakai|pake) apa/.test(value)
+    );
+    if (asksTech) return TECH_ANSWER;
     return "";
   }
 

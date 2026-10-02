@@ -260,6 +260,27 @@ function buildKpis(parsed) {
     })),
   })).sort((a, b) => b.total - a.total).slice(0, 15).map(({ name, years }) => ({ name, years }));
 
+  const salesYears = [2024, 2025, 2026];
+  const platformYearMap = new Map();
+  rows.forEach((row) => {
+    if (!salesYears.includes(row.tahun)) return;
+    const name = platformLabel(row.platform);
+    if (!platformYearMap.has(name)) platformYearMap.set(name, new Map());
+    const years = platformYearMap.get(name);
+    const current = years.get(row.tahun) || { revenue: 0, qty: 0 };
+    current.revenue += row.omset;
+    current.qty += row.qty;
+    years.set(row.tahun, current);
+  });
+  const platform_yearly = [...platformYearMap.entries()].map(([platform, years]) => {
+    const revenue_idr = {};
+    salesYears.forEach((year) => {
+      revenue_idr[String(year)] = money((years.get(year) || { revenue: 0 }).revenue);
+    });
+    const total = salesYears.reduce((sum, year) => sum + ((years.get(year) || { revenue: 0 }).revenue), 0);
+    return { platform, revenue_idr, total };
+  }).sort((a, b) => b.total - a.total).map(({ platform, revenue_idr }) => ({ platform, revenue_idr }));
+
   const itemNow = groupSum(recent, (row) => row.item);
   const itemBefore = groupSum(prior, (row) => row.item);
   const items = [...new Set([...itemNow.keys(), ...itemBefore.keys()])].map((name) => {
@@ -288,6 +309,7 @@ function buildKpis(parsed) {
         : "Sheet tidak memiliki kolom transaksi, sehingga jumlah transaksi dan nilai rata-rata transaksi tidak dihitung.",
       "Tahun berjalan bisa belum setahun penuh. Pertumbuhan YoY tahun terakhir tidak disetahunkan.",
       "Omset hanya dihitung dari baris dengan STAT_PO persis DIKIRIM.",
+      "Penjualan, omset, dan omset penjualan sama-sama berarti BRUTTO.",
     ],
     overall: {
       total_revenue: money(total.revenue),
@@ -314,6 +336,7 @@ function buildKpis(parsed) {
     },
     yearly,
     platform,
+    platform_yearly,
     brand,
     brand_yearly,
     product: {
@@ -341,7 +364,9 @@ function selectContext(kpis, question) {
     currency: kpis.currency,
     period: kpis.period,
     notes: kpis.notes,
+    sales_definition: "Penjualan = Omset = Omset Penjualan = BRUTTO. Hanya baris STAT_PO persis DIKIRIM. platform_yearly.revenue_idr adalah omset Rupiah penuh per platform untuk 2024, 2025, dan 2026.",
     overall: kpis.overall,
+    platform_yearly: kpis.platform_yearly,
   };
   const want = (pattern) => broad || pattern.test(q);
   if (want(/tren|bulan|mom|musim|turun|naik|drop|anjlok/)) {
@@ -411,6 +436,8 @@ function systemPrompt() {
     "possible_explanations must be hypotheses, not facts.",
     `If there is no clear anomaly, anomalies must be ["${NO_ANOMALY}"].`,
     "Amounts are Indonesian Rupiah. Do not invent transactions or average transaction value when those fields are null.",
+    "Penjualan, omset, and omset penjualan all mean BRUTTO, and only STAT_PO DIKIRIM rows are included.",
+    "For a named platform and year, copy platform_yearly.revenue_idr exactly. Never answer a single platform with overall or yearly totals.",
   ].join("\n");
 }
 
@@ -475,15 +502,67 @@ async function askGemini(apiKey, question, context) {
   throw lastError || new Error("Gemini tidak menjawab.");
 }
 
+const AUTHOR_ANSWER = "Program ini dibuat oleh Mr.Agus Wibowo atau sering dipanggil dengan Coach Awey. Program ini mulai dibuat pada bulan September 2026 untuk tujuan Analisa data E-Comm PT. Bahtera Cipta Raga Prima dan masih terus dikembangkan.";
+const TECH_ANSWER = "Program ini dibuat dengan menggunakan HTML, JS, CSS, Back End dan Front End, disimpan ke Github dan menghubungkan AI dengan kode API dari Google Studio AI.";
+
 function exclusiveAnswer(question) {
-  const text = String(question || "").trim();
-  if (text === "Siapakah pembuat program ini?") {
-    return "Program ini dibuat oleh Mr.Agus Wibowo atau sering dipanggil dengan Coach Awey. Program ini mulai dibuat pada bulan September 2026 untuk tujuan Analisa data E-Comm PT. Bahtera Cipta Raga Prima dan masih terus dalam proses pengembangan.";
+  const text = String(question || "").toLowerCase().replace(/[?!.,]/g, " ").replace(/\s+/g, " ").trim();
+  const aboutProgram = /(program|aplikasi|website|web site|sistem|presentasi|\bini\b)/.test(text);
+  const asksAuthor = /(siapa(kah)?|who)\b/.test(text) && /(pembuat|membuat|buat|bikin|pengembang|developer|creator|author|pencipta|pemilik)/.test(text);
+  const asksAuthorAlt = aboutProgram && /(pembuat|pengembang|developer|creator)\b/.test(text);
+  if ((asksAuthor && aboutProgram) || asksAuthorAlt || (aboutProgram && /(dibuat|diciptakan|dirancang)\b/.test(text) && /siapa/.test(text))) {
+    return AUTHOR_ANSWER;
   }
-  if (text === "Program ini dibuat menggunakan apa?") {
-    return "Program ini dibuat dengan menggunakan HTML, JS, CSS, Back End dan Front End, disimpan ke Github dan menghubungkan AI dengan kode API dari Google Studio AI.";
-  }
+  const asksTech = aboutProgram && (
+    /(teknologi|tech stack|bahasa pemrograman|framework|\btools?\b)/.test(text)
+    || /(dibuat|buat|dikembangkan|bikin).{0,40}(menggunakan|memakai|pakai|pake|dengan)/.test(text)
+    || /(menggunakan|memakai|pakai|pake) apa/.test(text)
+  );
+  if (asksTech) return TECH_ANSWER;
   return "";
+}
+
+function formatRupiah(value) {
+  const digits = Math.round(Number(value) || 0).toString();
+  return `Rp ${digits.replace(/\B(?=(\d{3})+(?!\d))/g, ".")}`;
+}
+
+function mentionsPlatform(question, platform) {
+  const aliases = [platform.toLowerCase()];
+  if (platform === "Mitra Semeru") aliases.push("semeru");
+  if (platform === "Alfa Gift") aliases.push("alfa gift", "alfagift", "alfa");
+  if (platform === "Berhasil Tumbuh") aliases.push("berhasil tumbuh", "berhasil");
+  if (platform === "Tokopedia") aliases.push("tokped");
+  const source = ` ${String(question || "").toLowerCase()} `;
+  return aliases.some((alias) => {
+    const escaped = alias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    return new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, "i").test(source);
+  });
+}
+
+function directSalesAnswer(question, kpis) {
+  const text = String(question || "").toLowerCase();
+  if (!/(omset|penjualan|brutto)/.test(text)) return "";
+  if (/(banding|dibanding|versus|\bvs\b|kenapa|mengapa|tren|trend)/.test(text)) return "";
+  const years = text.match(/\b(2024|2025|2026)\b/g) || [];
+  if (new Set(years).size !== 1) return "";
+  const year = years[0];
+  const hits = (kpis.platform_yearly || []).filter((item) => mentionsPlatform(text, item.platform));
+  if (hits.length !== 1) return "";
+  const revenue = hits[0].revenue_idr[year];
+  return `Omset ${hits[0].platform} tahun ${year} adalah ${formatRupiah(revenue)}. Angka ini adalah BRUTTO pesanan berstatus DIKIRIM. Penjualan, omset, dan omset penjualan memakai nilai yang sama.`;
+}
+
+function platformLabel(name) {
+  const text = String(name || "").toUpperCase();
+  if (text.includes("SHOPEE")) return "Shopee";
+  if (text.includes("TOKOPEDIA")) return "Tokopedia";
+  if (text.includes("SEMERU")) return "Mitra Semeru";
+  if (text.includes("ALFA")) return "Alfa Gift";
+  if (text.includes("BERHASIL")) return "Berhasil Tumbuh";
+  if (text.includes("LAZADA")) return "Lazada";
+  if (text.includes("BLIBLI")) return "Blibli";
+  return String(name || "").trim() || "Tidak diketahui";
 }
 
 function answerPrompt() {
@@ -496,6 +575,8 @@ function answerPrompt() {
     "Differentiate between factual data and hypothesis.",
     `If data is insufficient to explain a "why", you MUST state: "${INSUFFICIENT}"`,
     "Amounts are Indonesian Rupiah. Do not invent transactions or average transaction value when those fields are null.",
+    "Penjualan, omset, and omset penjualan all mean BRUTTO. The figures already include only STAT_PO DIKIRIM.",
+    "If the question asks the omset of one platform in one year, copy that integer from platform_yearly.revenue_idr. Do not use overall or yearly totals for a single platform.",
   ].join("\n");
 }
 
@@ -553,6 +634,8 @@ export async function handleAnalystRequest(request, env) {
     const preset = payload.full ? "" : exclusiveAnswer(question);
     if (preset) return { status: 200, body: { answer: preset } };
     const kpis = await loadKpis();
+    const salesAnswer = payload.full ? "" : directSalesAnswer(question, kpis);
+    if (salesAnswer) return { status: 200, body: { answer: salesAnswer } };
     const context = selectContext(kpis, payload.full ? "" : question);
     const result = payload.full
       ? await askGemini(apiKey, question, context)

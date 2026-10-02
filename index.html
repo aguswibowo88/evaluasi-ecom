@@ -72,6 +72,7 @@
         <li><a class="nav-link" href="#snapshot">Snapshot</a></li>
         <li><a class="nav-link" href="#tren">Tren</a></li>
         <li><a class="nav-link" href="#kinerja">Channel</a></li>
+        <li><a class="nav-link" href="#sla">SLA</a></li>
         <li><a class="nav-link" href="#merek">Merek</a></li>
         <li><a class="nav-link" href="#promo">Promo</a></li>
         <li><a class="nav-link" href="#saran">Saran</a></li>
@@ -207,6 +208,21 @@
           <p class="text-slate-600 text-lg leading-relaxed border-l-2 border-teal-400/60 pl-5">
             Shopee mendominasi saluran distribusi secara absolut. Portofolio didominasi oleh lini produk <em>sun care</em> (Banana Boat).
           </p>
+        </div>
+      </div>
+    </section>
+
+    <section id="sla" class="relative py-8 px-4 sm:px-6 scroll-mt-28">
+      <div class="mx-auto max-w-6xl">
+        <div data-aos="fade-up">
+          <p class="text-xs tracking-[0.28em] uppercase text-gold-700 mb-3">Service Level</p>
+          <h2 class="font-display text-3xl sm:text-5xl text-slate-900">Service Level Information</h2>
+          <p class="mt-3 max-w-2xl text-slate-600">Persentase BRUTTO berstatus DIKIRIM terhadap seluruh BRUTTO PO, per platform, pada 2024, 2025, dan 2026.</p>
+        </div>
+        <div class="mt-8 glass-strong rounded-3xl p-5 sm:p-8" data-aos="fade-up">
+          <div class="h-[340px] sm:h-[420px]">
+            <canvas id="slaChart" aria-label="Service level tiap platform pada tiga tahun terakhir"></canvas>
+          </div>
         </div>
       </div>
     </section>
@@ -475,8 +491,8 @@
     </div>
   </footer>
 
-  <script src="script.js?v=platform-growth"></script>
-  <script src="ai-analyst.js?v=3"></script>
+  <script src="script.js?v=sla"></script>
+  <script src="ai-analyst.js?v=4"></script>
 
 </body>
 </html>
