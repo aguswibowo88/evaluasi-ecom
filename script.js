@@ -327,11 +327,156 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
       });
     }
 
+    function platformShortName(name) {
+      const text = String(name || "").toUpperCase();
+      if (text.includes("SHOPEE")) return "Shopee";
+      if (text.includes("TOKOPEDIA")) return "Tokopedia";
+      if (text.includes("SEMERU")) return "Mitra Semeru";
+      if (text.includes("ALFA")) return "Alfa Gift";
+      if (text.includes("BERHASIL")) return "Berhasil Tumbuh";
+      if (text.includes("LAZADA")) return "Lazada";
+      if (text.includes("BLIBLI")) return "Blibli";
+      return name;
+    }
+
+    function parseSheetCsv(source) {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let quoted = false;
+      const input = String(source).replace(/^\uFEFF/, "");
+      for (let i = 0; i < input.length; i += 1) {
+        const ch = input[i];
+        if (quoted) {
+          if (ch === '"') {
+            if (input[i + 1] === '"') {
+              cell += '"';
+              i += 1;
+            } else quoted = false;
+          } else cell += ch;
+        } else if (ch === '"') quoted = true;
+        else if (ch === ",") {
+          row.push(cell);
+          cell = "";
+        } else if (ch === "\n") {
+          row.push(cell);
+          rows.push(row);
+          row = [];
+          cell = "";
+        } else if (ch !== "\r") cell += ch;
+      }
+      if (cell.length || row.length) {
+        row.push(cell);
+        rows.push(row);
+      }
+      return rows.filter((item) => item.some((value) => String(value).trim() !== ""));
+    }
+
+    function sheetAmount(value) {
+      let text = String(value || "").trim().replace(/Rp|IDR/gi, "").replace(/\s/g, "");
+      if (!text || text === "-" || text === "—") return 0;
+      if (/^\d{1,3}(\.\d{3})+$/.test(text)) text = text.replace(/\./g, "");
+      else if (/^\d{1,3}(,\d{3})+$/.test(text)) text = text.replace(/,/g, "");
+      else text = text.replace(/,/g, "");
+      const number = Number(text);
+      return Number.isFinite(number) ? number : 0;
+    }
+
+    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfecADJc1sJ1H7JBFhqDhvQNdJ7AlDr-PQbD4LEERvEbK9fJXCYTtRl003F_kjkhYyJLaX480p8A_E/pub?output=csv";
+
+    function buildPlatformYearChart() {
+      const canvas = document.getElementById("platformYearChart");
+      return fetch(SHEET_CSV_URL)
+        .then((response) => {
+          if (!response.ok) throw new Error("sheet");
+          return response.text();
+        })
+        .then((csv) => {
+          const table = parseSheetCsv(csv);
+          const header = table[0].map((name) => String(name).trim().toUpperCase());
+          const yearIndex = header.indexOf("TAHUN");
+          const platformIndex = header.indexOf("NM_PLG");
+          const statusIndex = header.indexOf("STAT_PO");
+          const revenueIndex = header.findIndex((name) => name.includes("BRUTTO"));
+          if ([yearIndex, platformIndex, statusIndex, revenueIndex].some((index) => index < 0)) return;
+          const totals = new Map();
+          table.slice(1).forEach((line) => {
+            if (String(line[statusIndex] || "").trim() !== "DIKIRIM") return;
+            const year = Number(line[yearIndex]);
+            const platform = String(line[platformIndex] || "").trim();
+            if (!year || !platform) return;
+            if (!totals.has(platform)) totals.set(platform, new Map());
+            const years = totals.get(platform);
+            years.set(year, (years.get(year) || 0) + sheetAmount(line[revenueIndex]));
+          });
+          const yearList = [...new Set([...totals.values()].flatMap((years) => [...years.keys()]))].sort((a, b) => a - b).slice(-3);
+          const platforms = [...totals.entries()]
+            .map(([name, years]) => ({
+              name: platformShortName(name),
+              total: yearList.reduce((sum, year) => sum + (years.get(year) || 0), 0),
+              values: yearList.map((year) => Math.round(((years.get(year) || 0) / 1e9) * 1000) / 1000),
+            }))
+            .filter((item) => item.total > 0)
+            .sort((a, b) => b.total - a.total);
+          if (!platforms.length || !yearList.length) return;
+          const palette = ["#0F766E", "#D4AF37", "#334155"];
+          return new Chart(canvas, {
+            type: "bar",
+            data: {
+              labels: platforms.map((item) => item.name),
+              datasets: yearList.map((year, index) => ({
+                label: String(year),
+                data: platforms.map((item) => item.values[index]),
+                backgroundColor: palette[index % palette.length],
+                borderRadius: 8,
+                maxBarThickness: 28,
+              })),
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              animation: { duration: 1500, easing: "easeOutQuart" },
+              plugins: {
+                legend: {
+                  position: "bottom",
+                  labels: { color: "#334155", padding: 16, usePointStyle: true, pointStyle: "circle" },
+                },
+                tooltip: {
+                  ...tooltipTheme,
+                  callbacks: {
+                    label(ctx) {
+                      return " " + ctx.dataset.label + ": Rp " + String(ctx.raw).replace(".", ",") + " Miliar";
+                    },
+                  },
+                },
+              },
+              scales: {
+                x: {
+                  grid: { display: false },
+                  ticks: { color: "#1E293B", maxRotation: 40, minRotation: 0, autoSkip: false },
+                },
+                y: {
+                  beginAtZero: true,
+                  grace: "12%",
+                  grid: { color: "rgba(148,163,184,0.2)" },
+                  ticks: {
+                    color: "#475569",
+                    callback(value) { return value + " M"; },
+                  },
+                },
+              },
+            },
+          });
+        })
+        .catch(() => {});
+    }
+
     const builders = {
       trendChart: buildTrendChart,
       platformChart: buildPlatformChart,
       brandChart: buildBrandChart,
       brandYearChart: buildBrandYearChart,
+      platformYearChart: buildPlatformYearChart,
     };
 
     const observer = new IntersectionObserver((entries) => {

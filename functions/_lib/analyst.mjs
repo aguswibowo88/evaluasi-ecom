@@ -1,4 +1,4 @@
-const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfecADJc1sJ1H7JBFhqDhvQNdJ7AlDr-PQbD4LEERvEbK9fJXCYTtRl003F_kjkhYyJLaX480p8A_E/pub?gid=0&single=true&output=csv";
+const DEFAULT_SHEET_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfecADJc1sJ1H7JBFhqDhvQNdJ7AlDr-PQbD4LEERvEbK9fJXCYTtRl003F_kjkhYyJLaX480p8A_E/pub?output=csv";
 const SHEET_TTL_MS = 10 * 60 * 1000;
 const ANSWER_TTL_MS = 30 * 60 * 1000;
 const MODELS = ["gemini-3.5-flash", "gemini-3.8-flash", "gemini-3.1-flash-lite"];
@@ -113,6 +113,7 @@ function mapColumns(header) {
     else if (["NM_BRG", "ITEM", "PRODUK", "PRODUCT"].includes(key)) index.item = i;
     else if (key.includes("BRUTTO") || ["OMSET", "NET SALES", "SALES", "REVENUE"].includes(key)) index.omset = i;
     else if (key.includes("QTY") || key.includes("QUANTITY") || key === "PCS") index.qty = i;
+    else if (key === "STAT_PO" || key === "STATUS_PO") index.status = i;
     else if (key.includes("TRANSAKSI") || key.includes("INVOICE") || key.includes("ORDER")) index.trx = i;
   });
   return index;
@@ -122,12 +123,13 @@ function rowsFromCsv(text) {
   const table = parseCsv(text);
   if (!table.length) return { rows: [], hasTransactions: false };
   const index = mapColumns(table[0]);
-  const needed = ["tahun", "bulan", "platform", "brand", "item", "omset"];
+  const needed = ["tahun", "bulan", "platform", "brand", "item", "omset", "status"];
   if (needed.some((key) => index[key] == null)) {
     throw new Error("Kolom CSV tidak lengkap.");
   }
   const rows = [];
   table.slice(1).forEach((line) => {
+    if (String(line[index.status] || "").trim() !== "DIKIRIM") return;
     const tahun = Number(line[index.tahun]);
     const month = parseMonth(line[index.bulan]);
     const omset = toNumber(line[index.omset]);
@@ -285,6 +287,7 @@ function buildKpis(parsed) {
         ? "Kolom transaksi tersedia."
         : "Sheet tidak memiliki kolom transaksi, sehingga jumlah transaksi dan nilai rata-rata transaksi tidak dihitung.",
       "Tahun berjalan bisa belum setahun penuh. Pertumbuhan YoY tahun terakhir tidak disetahunkan.",
+      "Omset hanya dihitung dari baris dengan STAT_PO persis DIKIRIM.",
     ],
     overall: {
       total_revenue: money(total.revenue),
@@ -377,8 +380,8 @@ function cacheKey(question, context) {
   return String(hash);
 }
 
-async function loadKpis(sheetUrl) {
-  const url = sheetUrl || DEFAULT_SHEET_URL;
+async function loadKpis() {
+  const url = DEFAULT_SHEET_URL;
   if (sheetCache.kpis && sheetCache.url === url && Date.now() - sheetCache.at < SHEET_TTL_MS) {
     return sheetCache.kpis;
   }
@@ -482,7 +485,7 @@ export async function handleAnalystRequest(request, env) {
     const payload = await request.json();
     const question = String(payload.question || "").trim().slice(0, 500);
     if (!question) return { status: 400, body: { error: "Tuliskan pertanyaan untuk AI Analyst." } };
-    const kpis = await loadKpis(env.sheetUrl);
+    const kpis = await loadKpis();
     const context = selectContext(kpis, payload.full ? "" : question);
     const result = await askGemini(apiKey, question, context);
     return { status: 200, body: result };
