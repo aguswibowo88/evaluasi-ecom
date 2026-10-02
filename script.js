@@ -420,8 +420,45 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
             .sort((a, b) => b.total - a.total);
           if (!platforms.length || !yearList.length) return;
           const palette = ["#0F766E", "#D4AF37", "#334155"];
+          const platformYearGrowthPlugin = {
+            id: "platformYearGrowth",
+            afterDatasetsDraw(chart) {
+              const { ctx } = chart;
+              const narrow = chart.width < 800;
+              const fontSize = narrow ? 9 : 11;
+              ctx.save();
+              ctx.font = "600 " + fontSize + "px Outfit, sans-serif";
+              chart.data.datasets.forEach((dataset, datasetIndex) => {
+                if (datasetIndex === 0) return;
+                const meta = chart.getDatasetMeta(datasetIndex);
+                if (meta.hidden) return;
+                meta.data.forEach((bar, index) => {
+                  const current = platforms[index].values[datasetIndex];
+                  const prior = platforms[index].values[datasetIndex - 1];
+                  const label = formatBrandGrowth(current, prior);
+                  if (!label) return;
+                  ctx.fillStyle = label.charAt(0) === "−" ? "#991B1B" : "#0F766E";
+                  ctx.save();
+                  if (narrow) {
+                    ctx.translate(bar.x, bar.y - 3);
+                    ctx.rotate(-Math.PI / 2);
+                    ctx.textAlign = "left";
+                    ctx.textBaseline = "middle";
+                    ctx.fillText(label, 0, 0);
+                  } else {
+                    ctx.textAlign = "center";
+                    ctx.textBaseline = "bottom";
+                    ctx.fillText(label, bar.x, bar.y - 4);
+                  }
+                  ctx.restore();
+                });
+              });
+              ctx.restore();
+            },
+          };
           return new Chart(canvas, {
             type: "bar",
+            plugins: [platformYearGrowthPlugin],
             data: {
               labels: platforms.map((item) => item.name),
               datasets: yearList.map((year, index) => ({
@@ -435,6 +472,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
             options: {
               responsive: true,
               maintainAspectRatio: false,
+              layout: { padding: { top: 22 } },
               animation: { duration: 1500, easing: "easeOutQuart" },
               plugins: {
                 legend: {
@@ -457,7 +495,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
                 },
                 y: {
                   beginAtZero: true,
-                  grace: "12%",
+                  grace: "24%",
                   grid: { color: "rgba(148,163,184,0.2)" },
                   ticks: {
                     color: "#475569",
