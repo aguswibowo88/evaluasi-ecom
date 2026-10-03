@@ -171,8 +171,8 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
       color: #0F2744;
     }
     .sla-head p { margin-top: 0.3rem; color: #64748B; font-size: 0.95rem; }
-    .sla-top, .sla-bottom { display: grid; gap: 0.9rem; }
-    .sla-bottom { margin-top: 0.9rem; }
+    .sla-layout { display: grid; gap: 0.9rem; align-items: start; }
+    .sla-main { display: flex; flex-direction: column; gap: 0.9rem; min-width: 0; }
     .sla-panel {
       background: rgba(255, 255, 255, 0.82);
       border: 1px solid rgba(15, 39, 68, 0.06);
@@ -190,7 +190,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
       margin-bottom: 0.35rem;
     }
     .sla-chart-lg { height: 320px; }
-    .sla-chart-md { height: 280px; }
+    .sla-chart-md { height: 320px; }
     .sla-kpis { display: grid; grid-template-columns: 1fr; gap: 0.7rem; align-content: start; }
     .sla-card {
       background: rgba(255, 255, 255, 0.9);
@@ -225,16 +225,26 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
       font-weight: 650;
       color: #0F2744;
     }
-    .sla-card svg { display: block; width: 100%; height: 34px; margin-top: 0.3rem; }
+    .sla-status {
+      display: block;
+      margin-top: 0.15rem;
+      font-size: 0.75rem;
+      font-weight: 650;
+      letter-spacing: 0.04em;
+    }
+    .sla-status.excellent { color: #0F766E; }
+    .sla-status.good { color: #8A6D1F; }
+    .sla-status.acceptable { color: #475569; }
+    .sla-status.poor { color: #991B1B; }
+    .sla-card svg { display: block; width: 100%; height: 34px; margin-top: 0.35rem; }
     @media (min-width: 640px) and (max-width: 1023px) {
       .sla-kpis { grid-template-columns: 1fr 1fr; }
     }
     @media (min-width: 1024px) {
       .sla-board { padding: 1.5rem 1.4rem 1.2rem; }
-      .sla-top { grid-template-columns: minmax(0, 1.7fr) 270px; }
+      .sla-layout { grid-template-columns: minmax(0, 1fr) 270px; }
       .sla-kpis { grid-template-columns: 1fr; }
-      .sla-bottom { grid-template-columns: 1fr 1fr; }
-      .sla-chart-lg { height: 360px; }
+      .sla-chart-lg { height: 340px; }
     }
 
     ::-webkit-scrollbar { width: 10px; }

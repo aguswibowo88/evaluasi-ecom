@@ -52,7 +52,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
-  <link rel="stylesheet" href="style.css?v=sla-board" />
+  <link rel="stylesheet" href="style.css?v=sla-ui" />
 
 </head>
 <body class="bg-atmosphere min-h-screen antialiased">
@@ -219,28 +219,28 @@
             <h2>GRAFIK TINGKAT LAYANAN PLATFORM (2024-2026)</h2>
             <p>Laporan Kinerja Layanan</p>
           </header>
-          <div class="sla-top">
-            <article class="sla-panel">
-              <h3>Tren Tingkat Layanan</h3>
-              <div class="sla-chart-lg">
-                <canvas id="slaChart" aria-label="Tren service level tiap platform pada 2024, 2025, dan 2026"></canvas>
-              </div>
-            </article>
+          <div class="sla-layout">
+            <div class="sla-main">
+              <article class="sla-panel">
+                <h3>Service Level Indicator</h3>
+                <div class="sla-chart-lg">
+                  <canvas id="slaChart" aria-label="Service level tiap platform pada 2024, 2025, dan 2026"></canvas>
+                </div>
+              </article>
+              <article class="sla-panel">
+                <h3>Perbandingan Service Level per Tahun</h3>
+                <div class="sla-chart-md">
+                  <canvas id="slaYearChart" aria-label="Perbandingan service level per tahun"></canvas>
+                </div>
+              </article>
+              <article class="sla-panel">
+                <h3>Analisis Detail Tahunan</h3>
+                <div class="sla-chart-md">
+                  <canvas id="slaDetailChart" aria-label="Perbandingan service level tiap platform per tahun"></canvas>
+                </div>
+              </article>
+            </div>
             <aside id="slaKpis" class="sla-kpis" aria-label="Ringkasan SLA 2026"></aside>
-          </div>
-          <div class="sla-bottom">
-            <article class="sla-panel">
-              <h3>Perbandingan Service Level per Tahun</h3>
-              <div class="sla-chart-md">
-                <canvas id="slaYearChart" aria-label="Perbandingan service level per tahun"></canvas>
-              </div>
-            </article>
-            <article class="sla-panel">
-              <h3>Analisis Detail Tahunan</h3>
-              <div class="sla-chart-md">
-                <canvas id="slaDetailChart" aria-label="Perbandingan service level tiap platform per tahun"></canvas>
-              </div>
-            </article>
           </div>
         </div>
       </div>
@@ -510,7 +510,7 @@
     </div>
   </footer>
 
-  <script src="script.js?v=sla-board"></script>
+  <script src="script.js?v=sla-ui"></script>
   <script src="ai-analyst.js?v=4"></script>
 
 </body>

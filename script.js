@@ -591,25 +591,75 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
               callback(value) { return value + "%"; },
             },
           };
+          const slaBarValuePlugin = {
+            id: "slaBarValues",
+            afterDraw(chart) {
+              const { ctx } = chart;
+              ctx.save();
+              ctx.font = "600 9px Outfit, sans-serif";
+              ctx.fillStyle = "#1E293B";
+              ctx.textAlign = "center";
+              ctx.textBaseline = "bottom";
+              chart.data.datasets.forEach((dataset, datasetIndex) => {
+                const meta = chart.getDatasetMeta(datasetIndex);
+                if (meta.hidden) return;
+                meta.data.forEach((bar, index) => {
+                  const value = dataset.data[index];
+                  if (value == null || !bar || Number.isNaN(bar.x)) return;
+                  ctx.fillText(pctText(value), bar.x, bar.y - 3);
+                });
+              });
+              ctx.restore();
+            },
+          };
+          const slaDividerPlugin = {
+            id: "slaCategoryDividers",
+            afterDraw(chart) {
+              const xScale = chart.scales.x;
+              const area = chart.chartArea;
+              const count = chart.data.labels.length;
+              if (!xScale || !area || count < 2) return;
+              const { ctx } = chart;
+              ctx.save();
+              ctx.strokeStyle = "rgba(15, 39, 68, 0.28)";
+              ctx.lineWidth = 1;
+              for (let index = 0; index < count - 1; index += 1) {
+                const mid = (xScale.getPixelForTick(index) + xScale.getPixelForTick(index + 1)) / 2;
+                ctx.beginPath();
+                ctx.moveTo(mid, area.top);
+                ctx.lineTo(mid, area.bottom);
+                ctx.stroke();
+              }
+              ctx.restore();
+            },
+          };
+          const barPlugins = [slaBarValuePlugin, slaDividerPlugin];
+          const barOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: { top: 18, bottom: 8 } },
+            animation: { duration: 1500, easing: "easeOutQuart" },
+            plugins: { legend, tooltip: pctTooltip },
+          };
           kpiHost.replaceChildren();
-          platforms.forEach((item) => {
+          platforms.forEach((item, cardIndex) => {
+            const latest = item.sla[2];
+            if (latest == null || latest === 0) return;
             const card = document.createElement("article");
             card.className = "sla-card";
-            const known = item.sla.filter((value) => value != null);
-            const low = known.length ? Math.min(...known) : 0;
-            const high = known.length ? Math.max(...known) : 1;
-            const span = high - low || 1;
-            const points = item.sla.map((value, index) => {
-              if (value == null) return null;
-              const x = 4 + (index * 112) / (item.sla.length - 1);
-              const y = 4 + (1 - (value - low) / span) * 26;
+            const status = latest >= 90 ? "Excellent" : latest >= 80 ? "Good" : latest >= 70 ? "Acceptable" : "Poor";
+            const statusClass = status.toLowerCase();
+            const wave = Array.from({ length: 8 }, (_, step) => {
+              const x = 4 + step * 16;
+              const y = 18 + Math.sin(step * 0.85 + cardIndex) * 8;
               return x.toFixed(1) + "," + y.toFixed(1);
-            }).filter(Boolean).join(" ");
+            }).join(" ");
             const safeName = item.name.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch]));
             card.innerHTML = [
               "<header><span><i class=\"sla-dot\" style=\"background:" + item.color + "\"></i><strong>" + safeName.toUpperCase() + " SLA</strong></span><em>2026</em></header>",
-              "<b>" + pctText(item.sla[2]) + "</b>",
-              "<svg viewBox=\"0 0 120 34\" aria-hidden=\"true\"><polyline points=\"" + points + "\" fill=\"none\" stroke=\"" + item.color + "\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" /></svg>",
+              "<b>" + pctText(latest) + "</b>",
+              "<span class=\"sla-status " + statusClass + "\">" + status + "</span>",
+              "<svg viewBox=\"0 0 120 34\" aria-hidden=\"true\"><polyline points=\"" + wave + "\" fill=\"none\" stroke=\"" + item.color + "\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" /></svg>",
             ].join("");
             kpiHost.appendChild(card);
           });
@@ -645,6 +695,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
           });
           new Chart(yearCanvas, {
             type: "bar",
+            plugins: barPlugins,
             data: {
               labels: years.map(String),
               datasets: platforms.map((item) => ({
@@ -656,18 +707,16 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
               })),
             },
             options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              animation: { duration: 1500, easing: "easeOutQuart" },
-              plugins: { legend, tooltip: pctTooltip },
+              ...barOptions,
               scales: {
-                x: { grid: { display: false }, ticks: { color: "#1E293B" } },
+                x: { grid: { display: false }, ticks: { color: "#1E293B", padding: 8 } },
                 y: yScale,
               },
             },
           });
           new Chart(detailCanvas, {
             type: "bar",
+            plugins: barPlugins,
             data: {
               labels: platforms.map((item) => item.name),
               datasets: years.map((year, index) => ({
@@ -679,14 +728,11 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
               })),
             },
             options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              animation: { duration: 1500, easing: "easeOutQuart" },
-              plugins: { legend, tooltip: pctTooltip },
+              ...barOptions,
               scales: {
                 x: {
                   grid: { display: false },
-                  ticks: { color: "#1E293B", maxRotation: 40, minRotation: 0, autoSkip: false },
+                  ticks: { color: "#1E293B", padding: 8, maxRotation: 0, minRotation: 0, autoSkip: false },
                 },
                 y: yScale,
               },
