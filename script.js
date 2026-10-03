@@ -644,21 +644,32 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
           };
           kpiHost.replaceChildren();
           const latestYear = years[years.length - 1];
+          const appendSlaCard = (name, value, color) => {
+            const card = document.createElement("article");
+            card.className = "sla-card";
+            const status = value >= 90 ? "Excellent" : value >= 80 ? "Good" : value >= 70 ? "Acceptable" : "Poor";
+            const safeName = name.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch]));
+            card.innerHTML = [
+              "<header><span><i class=\"sla-dot\" style=\"background:" + color + "\"></i><strong>" + safeName.toUpperCase() + " SLA</strong></span><em>" + latestYear + "</em></header>",
+              "<b>" + pctText(value) + "</b>",
+              "<span class=\"sla-status " + status.toLowerCase() + "\">" + status + "</span>",
+            ].join("");
+            kpiHost.appendChild(card);
+          };
           platforms.forEach((item) => {
             const latest = item.sla[years.length - 1];
             if (latest == null || latest === 0) return;
-            const card = document.createElement("article");
-            card.className = "sla-card";
-            const status = latest >= 90 ? "Excellent" : latest >= 80 ? "Good" : latest >= 70 ? "Acceptable" : "Poor";
-            const statusClass = status.toLowerCase();
-            const safeName = item.name.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch]));
-            card.innerHTML = [
-              "<header><span><i class=\"sla-dot\" style=\"background:" + item.color + "\"></i><strong>" + safeName.toUpperCase() + " SLA</strong></span><em>" + latestYear + "</em></header>",
-              "<b>" + pctText(latest) + "</b>",
-              "<span class=\"sla-status " + statusClass + "\">" + status + "</span>",
-            ].join("");
-            kpiHost.appendChild(card);
+            appendSlaCard(item.name, latest, item.color);
           });
+          let sentAll = 0;
+          let grossAll = 0;
+          totals.forEach((byYear) => {
+            const row = byYear.get(latestYear);
+            if (!row) return;
+            sentAll += row.sent;
+            grossAll += row.all;
+          });
+          if (grossAll > 0) appendSlaCard("All Platform", Math.round((sentAll / grossAll) * 1000) / 10, "#0F2744");
           const yearChart = new Chart(yearCanvas, {
             type: "bar",
             plugins: barPlugins,
