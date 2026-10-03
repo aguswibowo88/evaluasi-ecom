@@ -52,7 +52,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
-  <link rel="stylesheet" href="style.css?v=sla-ui" />
+  <link rel="stylesheet" href="style.css?v=sla-clean" />
 
 </head>
 <body class="bg-atmosphere min-h-screen antialiased">
@@ -216,17 +216,11 @@
       <div class="mx-auto max-w-6xl">
         <div class="sla-board" data-aos="fade-up">
           <header class="sla-head">
-            <h2>GRAFIK TINGKAT LAYANAN PLATFORM (2024-2026)</h2>
+            <h2 id="slaTitle">SERVICE LEVEL INDICATOR</h2>
             <p>Laporan Kinerja Layanan</p>
           </header>
           <div class="sla-layout">
             <div class="sla-main">
-              <article class="sla-panel">
-                <h3>Service Level Indicator</h3>
-                <div class="sla-chart-lg">
-                  <canvas id="slaChart" aria-label="Service level tiap platform pada 2024, 2025, dan 2026"></canvas>
-                </div>
-              </article>
               <article class="sla-panel">
                 <h3>Perbandingan Service Level per Tahun</h3>
                 <div class="sla-chart-md">
@@ -510,7 +504,7 @@
     </div>
   </footer>
 
-  <script src="script.js?v=sla-ui"></script>
+  <script src="script.js?v=sla-clean"></script>
   <script src="ai-analyst.js?v=4"></script>
 
 </body>

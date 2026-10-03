@@ -189,7 +189,6 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
       font-weight: 650;
       margin-bottom: 0.35rem;
     }
-    .sla-chart-lg { height: 320px; }
     .sla-chart-md { height: 320px; }
     .sla-kpis { display: grid; grid-template-columns: 1fr; gap: 0.7rem; align-content: start; }
     .sla-card {
@@ -197,11 +196,12 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
       border: 1px solid rgba(15, 39, 68, 0.06);
       border-radius: 1.1rem;
       box-shadow: 0 8px 22px rgba(15, 39, 68, 0.05);
-      padding: 0.75rem 0.8rem 0.65rem;
+      padding: 0.9rem 0.75rem 0.85rem;
       min-width: 0;
+      text-align: center;
     }
-    .sla-card header { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; }
-    .sla-card header span { display: flex; align-items: center; gap: 0.4rem; min-width: 0; }
+    .sla-card header { display: flex; align-items: center; justify-content: center; gap: 0.4rem; }
+    .sla-card header span { display: flex; align-items: center; justify-content: center; gap: 0.4rem; min-width: 0; }
     .sla-card header strong {
       font-size: 0.68rem;
       letter-spacing: 0.06em;
@@ -219,16 +219,16 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
     .sla-dot { width: 0.55rem; height: 0.55rem; border-radius: 999px; flex: none; }
     .sla-card b {
       display: block;
-      margin-top: 0.25rem;
-      font-size: 1.45rem;
-      line-height: 1.1;
+      margin-top: 0.4rem;
+      font-size: 1.7rem;
+      line-height: 1;
       font-weight: 650;
       color: #0F2744;
     }
     .sla-status {
       display: block;
-      margin-top: 0.15rem;
-      font-size: 0.75rem;
+      margin-top: 0.28rem;
+      font-size: 0.78rem;
       font-weight: 650;
       letter-spacing: 0.04em;
     }
@@ -236,7 +236,6 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
     .sla-status.good { color: #8A6D1F; }
     .sla-status.acceptable { color: #475569; }
     .sla-status.poor { color: #991B1B; }
-    .sla-card svg { display: block; width: 100%; height: 34px; margin-top: 0.35rem; }
     @media (min-width: 640px) and (max-width: 1023px) {
       .sla-kpis { grid-template-columns: 1fr 1fr; }
     }
@@ -244,7 +243,6 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
       .sla-board { padding: 1.5rem 1.4rem 1.2rem; }
       .sla-layout { grid-template-columns: minmax(0, 1fr) 270px; }
       .sla-kpis { grid-template-columns: 1fr; }
-      .sla-chart-lg { height: 340px; }
     }
 
     ::-webkit-scrollbar { width: 10px; }

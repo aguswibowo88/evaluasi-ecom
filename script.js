@@ -510,7 +510,6 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
     }
 
     function buildSlaChart() {
-      const canvas = document.getElementById("slaChart");
       const yearCanvas = document.getElementById("slaYearChart");
       const detailCanvas = document.getElementById("slaDetailChart");
       const kpiHost = document.getElementById("slaKpis");
@@ -565,7 +564,9 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
             .filter((item) => item.total > 0)
             .sort((a, b) => b.total - a.total)
             .map((item, index) => ({ ...item, color: palette[item.name] || fallback[index % fallback.length] }));
-          if (!platforms.length || !canvas || !yearCanvas || !detailCanvas || !kpiHost) return;
+          const slaTitle = document.getElementById("slaTitle");
+          if (slaTitle) slaTitle.textContent = "SERVICE LEVEL INDICATOR (" + years[0] + "-" + years[years.length - 1] + ")";
+          if (!platforms.length || !yearCanvas || !detailCanvas || !kpiHost) return;
           const pctText = (value) => (value == null ? "—" : String(value).replace(".", ",") + "%");
           const present = platforms.flatMap((item) => item.sla.filter((value) => value != null));
           const axisMin = present.length ? Math.max(0, Math.floor((Math.min(...present) - 4) / 5) * 5) : 0;
@@ -642,58 +643,23 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
             plugins: { legend, tooltip: pctTooltip },
           };
           kpiHost.replaceChildren();
-          platforms.forEach((item, cardIndex) => {
-            const latest = item.sla[2];
+          const latestYear = years[years.length - 1];
+          platforms.forEach((item) => {
+            const latest = item.sla[years.length - 1];
             if (latest == null || latest === 0) return;
             const card = document.createElement("article");
             card.className = "sla-card";
             const status = latest >= 90 ? "Excellent" : latest >= 80 ? "Good" : latest >= 70 ? "Acceptable" : "Poor";
             const statusClass = status.toLowerCase();
-            const wave = Array.from({ length: 8 }, (_, step) => {
-              const x = 4 + step * 16;
-              const y = 18 + Math.sin(step * 0.85 + cardIndex) * 8;
-              return x.toFixed(1) + "," + y.toFixed(1);
-            }).join(" ");
             const safeName = item.name.replace(/[&<>"']/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;", "'": "&#39;" }[ch]));
             card.innerHTML = [
-              "<header><span><i class=\"sla-dot\" style=\"background:" + item.color + "\"></i><strong>" + safeName.toUpperCase() + " SLA</strong></span><em>2026</em></header>",
+              "<header><span><i class=\"sla-dot\" style=\"background:" + item.color + "\"></i><strong>" + safeName.toUpperCase() + " SLA</strong></span><em>" + latestYear + "</em></header>",
               "<b>" + pctText(latest) + "</b>",
               "<span class=\"sla-status " + statusClass + "\">" + status + "</span>",
-              "<svg viewBox=\"0 0 120 34\" aria-hidden=\"true\"><polyline points=\"" + wave + "\" fill=\"none\" stroke=\"" + item.color + "\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" /></svg>",
             ].join("");
             kpiHost.appendChild(card);
           });
-          const lineChart = new Chart(canvas, {
-            type: "line",
-            data: {
-              labels: years.map(String),
-              datasets: platforms.map((item) => ({
-                label: item.name,
-                data: item.sla,
-                borderColor: item.color,
-                backgroundColor: item.color + "22",
-                pointBackgroundColor: item.color,
-                pointBorderColor: "#fff",
-                pointRadius: 4,
-                pointHoverRadius: 6,
-                borderWidth: 2.5,
-                tension: 0.35,
-                fill: false,
-                spanGaps: false,
-              })),
-            },
-            options: {
-              responsive: true,
-              maintainAspectRatio: false,
-              animation: { duration: 1500, easing: "easeOutQuart" },
-              plugins: { legend, tooltip: pctTooltip },
-              scales: {
-                x: { grid: { display: false }, ticks: { color: "#1E293B" } },
-                y: yScale,
-              },
-            },
-          });
-          new Chart(yearCanvas, {
+          const yearChart = new Chart(yearCanvas, {
             type: "bar",
             plugins: barPlugins,
             data: {
@@ -738,7 +704,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
               },
             },
           });
-          return lineChart;
+          return yearChart;
         })
         .catch(() => {});
     }
@@ -749,7 +715,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
       brandChart: buildBrandChart,
       brandYearChart: buildBrandYearChart,
       platformYearChart: buildPlatformYearChart,
-      slaChart: buildSlaChart,
+      slaYearChart: buildSlaChart,
     };
 
     const observer = new IntersectionObserver((entries) => {
