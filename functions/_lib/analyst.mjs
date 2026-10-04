@@ -406,12 +406,11 @@ function cacheKey(question, context) {
 }
 
 async function loadKpis() {
-  const url = DEFAULT_SHEET_URL;
-  if (sheetCache.kpis && sheetCache.url === url && Date.now() - sheetCache.at < SHEET_TTL_MS) {
-    return sheetCache.kpis;
-  }
-  const response = await fetch(url + "&t=" + Date.now(), {
-    cache: "no-store",
+  sheetCache.at = 0;
+  sheetCache.kpis = null;
+  const url = DEFAULT_SHEET_URL + "&_cb=" + Date.now() + "_" + Math.random().toString(36).substring(2);
+  const response = await fetch(url, {
+    cache: "reload",
     headers: {
       accept: "text/csv",
       "user-agent": "Mozilla/5.0 (compatible; EvaluasiEcomAnalyst/1.0)",

@@ -385,7 +385,21 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
     const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfecADJc1sJ1H7JBFhqDhvQNdJ7AlDr-PQbD4LEERvEbK9fJXCYTtRl003F_kjkhYyJLaX480p8A_E/pub?output=csv";
 
     function fetchSheetCsv() {
-      return fetch(SHEET_CSV_URL + "&t=" + Date.now(), { cache: "no-store" });
+      ["localStorage", "sessionStorage"].forEach((storeName) => {
+        try {
+          const store = window[storeName];
+          if (!store) return;
+          const keys = [];
+          for (let index = 0; index < store.length; index += 1) keys.push(store.key(index));
+          keys.forEach((key) => {
+            if (key && /sheet|csv|kpi|brutto|ecom-data/i.test(key)) store.removeItem(key);
+          });
+        } catch (error) {
+          /* storage tidak tersedia */
+        }
+      });
+      const url = SHEET_CSV_URL + "&_cb=" + Date.now() + "_" + Math.random().toString(36).substring(2);
+      return fetch(url, { cache: "reload" });
     }
 
     function buildPlatformYearChart() {
