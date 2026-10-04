@@ -9,11 +9,11 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
     }
 
     const trend = D.trend || {};
-    const labels = trend.labels || [];
-    const actual = (trend.actual || []).map((v) => (v == null ? null : Number(v)));
-    const forecast = (trend.forecast || []).map((v) => (v == null ? null : Number(v)));
-    const lastActualIdx = actual.reduce((acc, v, i) => (v != null ? i : acc), -1);
-    const forecastIdx = forecast.length - 1;
+    let labels = trend.labels || [];
+    let actual = (trend.actual || []).map((v) => (v == null ? null : Number(v)));
+    let forecast = (trend.forecast || []).map((v) => (v == null ? null : Number(v)));
+    let lastActualIdx = actual.reduce((acc, v, i) => (v != null ? i : acc), -1);
+    let forecastIdx = forecast.length - 1;
     const growthPct = trend.growth_pct != null ? trend.growth_pct : 18;
     const platforms = D.platforms || [];
     const brands = D.brands || [];
@@ -384,7 +384,10 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
 
     const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfecADJc1sJ1H7JBFhqDhvQNdJ7AlDr-PQbD4LEERvEbK9fJXCYTtRl003F_kjkhYyJLaX480p8A_E/pub?output=csv";
 
-    function fetchSheetCsv() {
+    let sheetCsvPromise = null;
+
+    function loadSheetCsvText() {
+      if (sheetCsvPromise) return sheetCsvPromise;
       ["localStorage", "sessionStorage"].forEach((storeName) => {
         try {
           const store = window[storeName];
@@ -399,16 +402,131 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
         }
       });
       const url = SHEET_CSV_URL + "&_cb=" + Date.now() + "_" + Math.random().toString(36).substring(2);
-      return fetch(url, { cache: "reload" });
+      sheetCsvPromise = fetch(url, { cache: "reload" }).then((response) => {
+        if (!response.ok) throw new Error("sheet");
+        return response.text();
+      });
+      return sheetCsvPromise;
+    }
+
+    function sheetMonthLabel(year, monthText) {
+      const token = String(monthText || "").trim().replace(/\./g, "-").split(/[-\s]/)[0].toUpperCase().slice(0, 3);
+      const month = { JAN: 1, FEB: 2, MAR: 3, APR: 4, MEI: 5, MAY: 5, JUN: 6, JUL: 7, AGU: 8, AGS: 8, AUG: 8, SEP: 9, OKT: 10, OCT: 10, NOV: 11, DES: 12, DEC: 12 }[token];
+      const names = ["", "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+      if (!month || !year) return "";
+      return names[month] + " " + String(year).slice(2);
+    }
+
+    function labelOrder(label) {
+      const parts = String(label || "").split(" ");
+      const month = { Jan: 1, Feb: 2, Mar: 3, Apr: 4, Mei: 5, Jun: 6, Jul: 7, Ags: 8, Sep: 9, Okt: 10, Nov: 11, Des: 12 }[parts[0]];
+      return Number("20" + parts[1]) * 12 + (month || 0);
+    }
+
+    function miliarLabel(value) {
+      return "Rp " + (value / 1e9).toFixed(2).replace(".", ",") + " Miliar";
+    }
+
+    function applyLiveSheet(csv) {
+      const table = parseSheetCsv(csv);
+      if (table.length < 2) return;
+      const header = table[0].map((name) => String(name).trim().toUpperCase());
+      const yearIndex = header.indexOf("TAHUN");
+      const monthIndex = header.indexOf("BULAN");
+      const platformIndex = header.indexOf("NM_PLG");
+      const brandIndex = header.indexOf("MERK");
+      const statusIndex = header.indexOf("STAT_PO");
+      const revenueIndex = header.findIndex((name) => name.includes("BRUTTO"));
+      if ([yearIndex, monthIndex, platformIndex, statusIndex, revenueIndex].some((index) => index < 0)) return;
+
+      const openLabels = new Set(labels.filter((_, index) => actual[index] == null));
+      const horizon = labelOrder(labels[labels.length - 1] || "");
+      const monthSums = new Map();
+      const rows = [];
+      const brandAdd = new Map();
+      const platformAdd = new Map();
+      table.slice(1).forEach((line) => {
+        const year = Number(line[yearIndex]);
+        const month = String(line[monthIndex] || "").trim();
+        const status = String(line[statusIndex] || "").trim().toUpperCase();
+        const platform = String(line[platformIndex] || "").trim();
+        const brand = brandIndex < 0 ? "" : String(line[brandIndex] || "").trim();
+        const amount = sheetAmount(line[revenueIndex]);
+        rows.push({ year, month, status, platform, brand, amount });
+        if (status !== "DIKIRIM" || !year) return;
+        const label = sheetMonthLabel(year, month);
+        if (!label) return;
+        monthSums.set(label, (monthSums.get(label) || 0) + amount);
+        if (!openLabels.has(label) && labelOrder(label) <= horizon) return;
+        const brandName = brand.toUpperCase();
+        const slot = brandName.includes("BANANA") ? 0 : brandName.includes("INTUITION") ? 1 : brandName.includes("SCHICK") ? 2 : brandName.includes("FREEMAN") ? 3 : -1;
+        if (slot >= 0) {
+          if (!brandAdd.has(year)) brandAdd.set(year, [0, 0, 0, 0]);
+          brandAdd.get(year)[slot] += amount;
+        }
+        const shortPlatform = platformShortName(platform);
+        platformAdd.set(shortPlatform, (platformAdd.get(shortPlatform) || 0) + amount);
+      });
+      window.SHEET_ROWS = rows;
+
+      labels.forEach((label, index) => {
+        if (monthSums.has(label)) actual[index] = monthSums.get(label);
+      });
+      [...monthSums.keys()]
+        .filter((label) => !labels.includes(label) && labelOrder(label) > horizon)
+        .sort((a, b) => labelOrder(a) - labelOrder(b))
+        .forEach((label) => {
+          labels.push(label);
+          actual.push(monthSums.get(label));
+          forecast.push(null);
+        });
+      lastActualIdx = actual.reduce((acc, value, index) => (value != null ? index : acc), -1);
+      forecastIdx = forecast.length - 1;
+      if (lastActualIdx >= 0) setText("trendCaption", labels[lastActualIdx] + ": " + IDR.format(actual[lastActualIdx]));
+
+      brandAdd.forEach((amounts, year) => {
+        const series = brandYearSeries[String(year)];
+        if (!series) return;
+        amounts.forEach((amount, slot) => {
+          if (!amount) return;
+          series[slot] = Math.round((series[slot] + amount / 1e9) * 1000) / 1000;
+        });
+      });
+      const brandAdded = brandAdd.get(2026) || [0, 0, 0, 0];
+      platformAdd.forEach((amount, name) => {
+        const platform = platforms.find((item) => item.name === name);
+        if (platform) platform.value += amount;
+      });
+      const platformTotal = platforms.reduce((sum, item) => sum + item.value, 0);
+      platforms.forEach((item) => {
+        item.pct = platformTotal ? Math.round((item.value / platformTotal) * 100) : 0;
+      });
+      const pctGap = 100 - platforms.reduce((sum, item) => sum + item.pct, 0);
+      if (pctGap && platforms.length) platforms[0].pct += pctGap;
+      brands.forEach((item) => {
+        const slot = item.name === "Banana Boat" ? 0 : item.name === "Intuition" ? 1 : item.name === "Schick" ? 2 : -1;
+        if (slot < 0 || !brandAdded[slot]) return;
+        item.value += brandAdded[slot];
+        item.value_miliar = Math.round((item.value / 1e9) * 100) / 100;
+        item.label = miliarLabel(item.value);
+      });
+      if (D.top_platform && /shopee/i.test(D.top_platform.name)) {
+        D.top_platform.value += platformAdd.get("Shopee") || 0;
+        D.top_platform.label = miliarLabel(D.top_platform.value);
+        setText("topPlatformValue", D.top_platform.label);
+      }
+      if (D.top_brand && /banana/i.test(D.top_brand.name)) {
+        D.top_brand.value += brandAdded[0];
+        D.top_brand.label = miliarLabel(D.top_brand.value);
+        setText("topBrandValue", D.top_brand.label);
+      }
+      setText("platformCaption", platforms.map((item) => item.name + " " + item.pct + "%").join(" · "));
+      setText("brandCaption", brands.map((item) => item.name + " " + String(item.value_miliar).replace(".", ",") + "M").join(" · "));
     }
 
     function buildPlatformYearChart() {
       const canvas = document.getElementById("platformYearChart");
-      return fetchSheetCsv()
-        .then((response) => {
-          if (!response.ok) throw new Error("sheet");
-          return response.text();
-        })
+      return loadSheetCsvText()
         .then((csv) => {
           const table = parseSheetCsv(csv);
           const header = table[0].map((name) => String(name).trim().toUpperCase());
@@ -419,7 +537,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
           if ([yearIndex, platformIndex, statusIndex, revenueIndex].some((index) => index < 0)) return;
           const totals = new Map();
           table.slice(1).forEach((line) => {
-            if (String(line[statusIndex] || "").trim() !== "DIKIRIM") return;
+            if (String(line[statusIndex] || "").trim().toUpperCase() !== "DIKIRIM") return;
             const year = Number(line[yearIndex]);
             const platform = String(line[platformIndex] || "").trim();
             if (!year || !platform) return;
@@ -531,11 +649,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
       const yearCanvas = document.getElementById("slaYearChart");
       const detailCanvas = document.getElementById("slaDetailChart");
       const kpiHost = document.getElementById("slaKpis");
-      return fetchSheetCsv()
-        .then((response) => {
-          if (!response.ok) throw new Error("sheet");
-          return response.text();
-        })
+      return loadSheetCsvText()
         .then((csv) => {
           const table = parseSheetCsv(csv);
           const header = table[0].map((name) => String(name).trim().toUpperCase());
@@ -544,7 +658,8 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
           const statusIndex = header.indexOf("STAT_PO");
           const revenueIndex = header.findIndex((name) => name.includes("BRUTTO"));
           if ([yearIndex, platformIndex, statusIndex, revenueIndex].some((index) => index < 0)) return;
-          const years = [2024, 2025, 2026];
+          const presentYears = [...new Set(table.slice(1).map((line) => Number(line[yearIndex])).filter((year) => year >= 2024))].sort((a, b) => a - b);
+          const years = (presentYears.length ? presentYears : [2024, 2025, 2026]).slice(-3);
           const totals = new Map();
           table.slice(1).forEach((line) => {
             const year = Number(line[yearIndex]);
@@ -556,7 +671,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
             const current = byYear.get(year) || { sent: 0, all: 0 };
             const amount = sheetAmount(line[revenueIndex]);
             current.all += amount;
-            if (String(line[statusIndex] || "").trim() === "DIKIRIM") current.sent += amount;
+            if (String(line[statusIndex] || "").trim().toUpperCase() === "DIKIRIM") current.sent += amount;
             byYear.set(year, current);
           });
           const palette = {
@@ -747,11 +862,14 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
       slaYearChart: buildSlaChart,
     };
 
+    const sheetReady = loadSheetCsvText().then((csv) => applyLiveSheet(csv)).catch(() => {});
+
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         const id = entry.target.id;
         if (entry.isIntersecting && !initialized[id] && builders[id]) {
-          initialized[id] = builders[id]();
+          initialized[id] = true;
+          sheetReady.then(() => { builders[id](); });
         }
       });
     }, { threshold: 0.35 });

@@ -129,7 +129,7 @@ function rowsFromCsv(text) {
   }
   const rows = [];
   table.slice(1).forEach((line) => {
-    if (String(line[index.status] || "").trim() !== "DIKIRIM") return;
+    if (String(line[index.status] || "").trim().toUpperCase() !== "DIKIRIM") return;
     const tahun = Number(line[index.tahun]);
     const month = parseMonth(line[index.bulan]);
     const omset = toNumber(line[index.omset]);
