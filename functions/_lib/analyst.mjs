@@ -410,10 +410,14 @@ async function loadKpis() {
   if (sheetCache.kpis && sheetCache.url === url && Date.now() - sheetCache.at < SHEET_TTL_MS) {
     return sheetCache.kpis;
   }
-  const response = await fetch(url, {
+  const response = await fetch(url + "&t=" + Date.now(), {
+    cache: "no-store",
     headers: {
       accept: "text/csv",
       "user-agent": "Mozilla/5.0 (compatible; EvaluasiEcomAnalyst/1.0)",
+      "Cache-Control": "no-cache, no-store, must-revalidate",
+      Pragma: "no-cache",
+      Expires: "0",
     },
   });
   if (!response.ok) throw new Error("Sheet tidak dapat dibaca.");

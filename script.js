@@ -384,9 +384,13 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
 
     const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTfecADJc1sJ1H7JBFhqDhvQNdJ7AlDr-PQbD4LEERvEbK9fJXCYTtRl003F_kjkhYyJLaX480p8A_E/pub?output=csv";
 
+    function fetchSheetCsv() {
+      return fetch(SHEET_CSV_URL + "&t=" + Date.now(), { cache: "no-store" });
+    }
+
     function buildPlatformYearChart() {
       const canvas = document.getElementById("platformYearChart");
-      return fetch(SHEET_CSV_URL)
+      return fetchSheetCsv()
         .then((response) => {
           if (!response.ok) throw new Error("sheet");
           return response.text();
@@ -513,7 +517,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
       const yearCanvas = document.getElementById("slaYearChart");
       const detailCanvas = document.getElementById("slaDetailChart");
       const kpiHost = document.getElementById("slaKpis");
-      return fetch(SHEET_CSV_URL)
+      return fetchSheetCsv()
         .then((response) => {
           if (!response.ok) throw new Error("sheet");
           return response.text();
