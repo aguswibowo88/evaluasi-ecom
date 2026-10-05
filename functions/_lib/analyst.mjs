@@ -514,15 +514,16 @@ async function askGemini(apiKey, question, context) {
   throw lastError || new Error("Gemini tidak menjawab.");
 }
 
-const AUTHOR_ANSWER = "Program ini dibuat oleh Mr.Agus Wibowo atau sering dipanggil dengan Coach Awey. Program ini mulai dibuat pada bulan September 2026 untuk tujuan Analisa data E-Comm PT. Bahtera Cipta Raga Prima dan masih terus dikembangkan.";
+const AUTHOR_ANSWER = "Inisiatif pengembangan program ini diprakarsai dan dieksekusi langsung oleh Agus Wibowo. Latar belakang pengembangannya didasari oleh kebutuhan riil di lapangan akan sebuah sistem yang presisi dan adaptif. Dengan menggabungkan pemahaman mendalam tentang tata kelola operasional bisnis dan arsitektur data, program ini hadir sebagai solusi mandiri yang efisien, fleksibel, serta siap mendukung pertumbuhan bisnis secara berkelanjutan.";
 const TECH_ANSWER = "Program ini dibuat dengan menggunakan HTML, JS, CSS, Back End dan Front End, disimpan ke Github dan menghubungkan AI dengan kode API dari Google Studio AI.";
 
 function exclusiveAnswer(question) {
   const text = String(question || "").toLowerCase().replace(/[?!.,]/g, " ").replace(/\s+/g, " ").trim();
   const aboutProgram = /(program|aplikasi|website|web site|sistem|presentasi|\bini\b)/.test(text);
-  const asksAuthor = /(siapa(kah)?|who)\b/.test(text) && /(pembuat|membuat|buat|bikin|pengembang|developer|creator|author|pencipta|pemilik)/.test(text);
-  const asksAuthorAlt = aboutProgram && /(pembuat|pengembang|developer|creator)\b/.test(text);
-  if ((asksAuthor && aboutProgram) || asksAuthorAlt || (aboutProgram && /(dibuat|diciptakan|dirancang)\b/.test(text) && /siapa/.test(text))) {
+  const creatorPhrase = /(siapa(kah)?(?: yang)? (?:membuat|buat|bikin|pembuat|pencipta|developer|pengembang|creator)\b)|(\bwho (?:created|made|built)\b)|(pembuat (?:program|aplikasi|website|sistem|ini)\b)/.test(text);
+  const asksAuthor = /(siapa(kah)?|who)\b/.test(text) && /(pembuat|membuat|buat|bikin|pengembang|developer|creator|author|pencipta|pemilik|created|made)\b/.test(text);
+  const asksAuthorAlt = aboutProgram && /(pembuat|pengembang|developer|creator|pencipta)\b/.test(text);
+  if (creatorPhrase || (asksAuthor && aboutProgram) || asksAuthorAlt || (aboutProgram && /(dibuat|diciptakan|dirancang|created|made)\b/.test(text) && /(siapa|who)/.test(text))) {
     return AUTHOR_ANSWER;
   }
   const asksTech = aboutProgram && (
