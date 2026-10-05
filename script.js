@@ -14,7 +14,9 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
     let forecast = (trend.forecast || []).map((v) => (v == null ? null : Number(v)));
     let lastActualIdx = actual.reduce((acc, v, i) => (v != null ? i : acc), -1);
     let forecastIdx = forecast.length - 1;
-    const growthPct = trend.growth_pct != null ? trend.growth_pct : 18;
+    let growthPct = trend.growth_pct != null ? trend.growth_pct : 18;
+    let growthText = "+" + growthPct + "%";
+    let forecastTitle = "Forecast Sep 2026";
     const platforms = D.platforms || [];
     const brands = D.brands || [];
 
@@ -95,7 +97,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
               spanGaps: false,
             },
             {
-              label: "Forecast Sep 2026",
+              label: forecastTitle,
               data: forecast,
               borderColor: "#D4AF37",
               backgroundColor: "#E8D48B",
@@ -121,7 +123,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
               callbacks: {
                 label(ctx) {
                   if (ctx.raw == null) return "";
-                  const tag = ctx.datasetIndex === 1 && ctx.dataIndex === forecastIdx ? " (Projected +" + growthPct + "%)" : "";
+                  const tag = ctx.datasetIndex === 1 && ctx.dataIndex === forecastIdx ? " (Projected " + growthText + ")" : "";
                   return " " + IDR.format(ctx.raw) + tag;
                 },
               },
@@ -409,12 +411,25 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
       return sheetCsvPromise;
     }
 
-    function sheetMonthLabel(year, monthText) {
+    const MONTH_SHORT = ["", "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+    const MONTH_NAME = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
+    const MONTH_TOKEN = { JAN: 1, FEB: 2, MAR: 3, APR: 4, MEI: 5, MAY: 5, JUN: 6, JUL: 7, AGU: 8, AGS: 8, AUG: 8, SEP: 9, OKT: 10, OCT: 10, NOV: 11, DES: 12, DEC: 12 };
+
+    function monthNumber(monthText) {
       const token = String(monthText || "").trim().replace(/\./g, "-").split(/[-\s]/)[0].toUpperCase().slice(0, 3);
-      const month = { JAN: 1, FEB: 2, MAR: 3, APR: 4, MEI: 5, MAY: 5, JUN: 6, JUL: 7, AGU: 8, AGS: 8, AUG: 8, SEP: 9, OKT: 10, OCT: 10, NOV: 11, DES: 12, DEC: 12 }[token];
-      const names = ["", "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Ags", "Sep", "Okt", "Nov", "Des"];
+      return MONTH_TOKEN[token] || 0;
+    }
+
+    function ymLabel(ym) {
+      const year = Math.floor((ym - 1) / 12);
+      const month = ym - year * 12;
+      return MONTH_SHORT[month] + " " + String(year).slice(2);
+    }
+
+    function sheetMonthLabel(year, monthText) {
+      const month = monthNumber(monthText);
       if (!month || !year) return "";
-      return names[month] + " " + String(year).slice(2);
+      return MONTH_SHORT[month] + " " + String(year).slice(2);
     }
 
     function labelOrder(label) {
@@ -437,6 +452,8 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
       const brandIndex = header.indexOf("MERK");
       const statusIndex = header.indexOf("STAT_PO");
       const revenueIndex = header.findIndex((name) => name.includes("BRUTTO"));
+      const itemIndex = header.indexOf("NM_BRG");
+      const qtyIndex = header.findIndex((name) => name.includes("QTY"));
       if ([yearIndex, monthIndex, platformIndex, statusIndex, revenueIndex].some((index) => index < 0)) return;
 
       const openLabels = new Set(labels.filter((_, index) => actual[index] == null));
@@ -451,10 +468,13 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
         const status = String(line[statusIndex] || "").trim().toUpperCase();
         const platform = String(line[platformIndex] || "").trim();
         const brand = brandIndex < 0 ? "" : String(line[brandIndex] || "").trim();
+        const item = itemIndex < 0 ? "" : String(line[itemIndex] || "").trim();
         const amount = sheetAmount(line[revenueIndex]);
-        rows.push({ year, month, status, platform, brand, amount });
-        if (status !== "DIKIRIM" || !year) return;
+        const qty = qtyIndex < 0 ? 0 : sheetAmount(line[qtyIndex]);
         const label = sheetMonthLabel(year, month);
+        const ym = label ? labelOrder(label) : 0;
+        rows.push({ year, month, ym, status, platform, brand, item, qty, amount });
+        if (status !== "DIKIRIM" || !year) return;
         if (!label) return;
         monthSums.set(label, (monthSums.get(label) || 0) + amount);
         if (!openLabels.has(label) && labelOrder(label) <= horizon) return;
@@ -480,9 +500,6 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
           actual.push(monthSums.get(label));
           forecast.push(null);
         });
-      lastActualIdx = actual.reduce((acc, value, index) => (value != null ? index : acc), -1);
-      forecastIdx = forecast.length - 1;
-      if (lastActualIdx >= 0) setText("trendCaption", labels[lastActualIdx] + ": " + IDR.format(actual[lastActualIdx]));
 
       brandAdd.forEach((amounts, year) => {
         const series = brandYearSeries[String(year)];
@@ -522,6 +539,221 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
       }
       setText("platformCaption", platforms.map((item) => item.name + " " + item.pct + "%").join(" · "));
       setText("brandCaption", brands.map((item) => item.name + " " + String(item.value_miliar).replace(".", ",") + "M").join(" · "));
+      publishLatestPeriod(rows, monthSums);
+    }
+
+    function sumYm(monthSums, start, end) {
+      let total = 0;
+      for (let ym = start; ym <= end; ym += 1) total += monthSums.get(ymLabel(ym)) || 0;
+      return total;
+    }
+
+    function topSumAll(list, keyFn) {
+      const map = new Map();
+      list.forEach((row) => {
+        const key = keyFn(row);
+        if (!key) return;
+        map.set(key, (map.get(key) || 0) + row.amount);
+      });
+      return map;
+    }
+
+    function topSum(list, keyFn) {
+      let best = null;
+      topSumAll(list, keyFn).forEach((value, key) => {
+        if (!best || value > best[1]) best = [key, value];
+      });
+      return best;
+    }
+
+    function buildStock(rows, endYm) {
+      const start = endYm - 11;
+      const map = new Map();
+      rows.forEach((row) => {
+        if (row.status !== "DIKIRIM" || row.ym < start || row.ym > endYm || !row.item) return;
+        if (!map.has(row.item)) map.set(row.item, new Map());
+        const months = map.get(row.item);
+        const current = months.get(row.ym) || { amount: 0, qty: 0 };
+        current.amount += row.amount;
+        current.qty += row.qty;
+        months.set(row.ym, current);
+      });
+      return [...map.entries()].map(([name, months]) => {
+        let total = 0;
+        let qty = 0;
+        let max = 0;
+        months.forEach((value) => {
+          total += value.amount;
+          qty += value.qty;
+          if (value.amount > max) max = value.amount;
+        });
+        const avg = total / 12;
+        const avg3 = [endYm - 2, endYm - 1, endYm].reduce((sum, ym) => sum + ((months.get(ym) || { amount: 0 }).amount), 0) / 3;
+        const price = qty ? total / qty : 0;
+        const buff = price ? Math.round(((avg3 + max) / 2) * 3 / price) : 0;
+        return { name, avg, max, buff };
+      }).sort((a, b) => b.avg - a.avg).slice(0, 10);
+    }
+
+    function buildDeclines(rows, endYm) {
+      const map = new Map();
+      rows.forEach((row) => {
+        if (row.status !== "DIKIRIM" || !row.item) return;
+        if (!map.has(row.item)) map.set(row.item, { recent: 0, prior: 0 });
+        const bucket = map.get(row.item);
+        if (row.ym >= endYm - 11 && row.ym <= endYm) bucket.recent += row.amount;
+        else if (row.ym >= endYm - 23 && row.ym <= endYm - 12) bucket.prior += row.amount;
+      });
+      return [...map.entries()]
+        .filter(([, value]) => value.recent > 0 && value.prior > value.recent)
+        .map(([name, value]) => ({ name, prior: value.prior, recent: value.recent, pct: (value.recent - value.prior) / value.prior, overlap: false }))
+        .sort((a, b) => a.pct - b.pct);
+    }
+
+    function escapeHtml(value) {
+      return String(value).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[ch]));
+    }
+
+    function renderStock(list) {
+      const body = document.getElementById("stockBody");
+      if (!body || !list.length) return;
+      body.innerHTML = list.map((item, index) => {
+        const edge = index === list.length - 1 ? "" : "border-b border-slate-100";
+        const buff = item.buff ? Math.round(item.buff).toLocaleString("id-ID") : "–";
+        return "<tr class=\"" + edge + "\"><td class=\"px-5 py-3\">" + escapeHtml(item.name) + "</td><td class=\"px-5 py-3 text-right tabular-nums\">" + IDR.format(Math.round(item.avg)) + "</td><td class=\"px-5 py-3 text-right tabular-nums\">" + IDR.format(Math.round(item.max)) + "</td><td class=\"px-5 py-3 text-right tabular-nums\">" + buff + "</td></tr>";
+      }).join("");
+    }
+
+    function renderPromo(list) {
+      const body = document.getElementById("promoBody");
+      if (!body || !list.length) return;
+      body.innerHTML = list.map((item, index) => {
+        const classes = [];
+        if (item.overlap) classes.push("overlap-top10");
+        if (index !== list.length - 1) classes.push("border-b border-slate-100");
+        const pct = (item.pct < 0 ? "−" : "+") + Math.abs(item.pct * 100).toFixed(2).replace(".", ",") + "%";
+        return "<tr class=\"" + classes.join(" ") + "\"><td class=\"px-5 py-3\">" + escapeHtml(item.name) + "</td><td class=\"px-5 py-3 text-right tabular-nums\">" + IDR.format(Math.round(item.prior)) + "</td><td class=\"px-5 py-3 text-right tabular-nums\">" + IDR.format(Math.round(item.recent)) + "</td><td class=\"px-5 py-3 text-right font-medium text-rose-700 tabular-nums\">" + pct + "</td></tr>";
+      }).join("");
+    }
+
+    function publishLatestPeriod(rows, monthSums) {
+      const latestLabel = [...monthSums.keys()].sort((a, b) => labelOrder(b) - labelOrder(a))[0];
+      if (!latestLabel) return;
+      const latestYm = labelOrder(latestLabel);
+      const latestYearNum = Math.floor((latestYm - 1) / 12);
+      const latestMonthNum = latestYm - latestYearNum * 12;
+      const nextYm = latestYm + 1;
+      const nextYearNum = Math.floor((nextYm - 1) / 12);
+      const nextMonthNum = nextYm - nextYearNum * 12;
+      const latestMonthName = MONTH_NAME[latestMonthNum];
+      const latestMonthShort = MONTH_SHORT[latestMonthNum];
+      const latestYear = String(latestYearNum);
+      const nextMonthName = MONTH_NAME[nextMonthNum];
+      const nextMonthShort = MONTH_SHORT[nextMonthNum];
+      const nextYear = String(nextYearNum);
+      const currentRange = ymLabel(latestYm - 11) + "–" + ymLabel(latestYm);
+      const priorRange = ymLabel(latestYm - 23) + "–" + ymLabel(latestYm - 12);
+      const nextLabel = ymLabel(nextYm);
+      const latestValue = monthSums.get(latestLabel) || 0;
+      const recentLevel = sumYm(monthSums, latestYm - 11, latestYm);
+      const priorLevel = sumYm(monthSums, latestYm - 23, latestYm - 12);
+      const seasonalBase = monthSums.get(ymLabel(nextYm - 12)) || 0;
+      const level = priorLevel > 0 ? recentLevel / priorLevel : 1;
+      const storedGrowth = trend.growth_pct != null ? trend.growth_pct : 18;
+      const forecastValue = seasonalBase > 0 ? seasonalBase * level : latestValue * (1 + storedGrowth / 100);
+
+      if (!labels.includes(nextLabel)) {
+        labels.push(nextLabel);
+        actual.push(null);
+      }
+      growthPct = latestValue > 0 ? Math.round((forecastValue / latestValue - 1) * 100) : storedGrowth;
+      growthText = (growthPct > 0 ? "+" : "") + growthPct + "%";
+      forecastTitle = "Forecast " + nextMonthShort + " " + nextYear;
+      lastActualIdx = labels.indexOf(latestLabel);
+      forecastIdx = labels.indexOf(nextLabel);
+      forecast = labels.map((_, index) => {
+        if (index === lastActualIdx) return latestValue;
+        if (index === forecastIdx) return Math.round(forecastValue);
+        return null;
+      });
+
+      setText("heroYtd", "Confidential · YTD " + latestMonthName + " " + latestYear + " · Holt-Winters Outlook");
+      setText("heroRange", "Analisis Historis (Feb 2023 - " + latestMonthShort + " " + latestYear + ") & Prediksi Strategis");
+      setText("snapshotWindow", "Tiga kontributor terbesar pada tahun berjalan " + latestYear + " (Jan–" + latestMonthShort + ").");
+      setText("trendRange", "Omset bulanan · 3 tahun terakhir (Jan 24 – " + latestMonthShort + " " + latestYear.slice(2) + ")");
+      setText("trendCaption", latestMonthName + " " + latestYear + ": " + IDR.format(latestValue) + " · Forecast " + nextMonthShort + " " + growthText);
+      setText("chipForecast", forecastTitle + " " + growthText);
+      setText("footerForecast", forecastTitle);
+      setText("brandWindow", "Omset tiap merek pada 2024, 2025, dan " + latestYear + " (sampai " + latestMonthName + ").");
+      setText("stockWindow", "Diurutkan dari rata-rata omset bulanan tertinggi pada " + currentRange + ". Buff Stok 3M (pcs) = ((rata-rata omset 3 bulan terakhir + omset bulan tertinggi 12 bulan) / 2) × 3, dibagi harga rata-rata per pcs.");
+      setText("promoWindow", "Omset 12 bulan terakhir (" + currentRange + ") dibanding 12 bulan sebelumnya (" + priorRange + "). Hanya item yang masih terjual dan turun, diurutkan dari penurunan paling tajam.");
+      setText("promoPriorHead", priorRange);
+      setText("promoRecentHead", currentRange);
+      setText("saranLead", "Empat prioritas eksekusi menjelang momentum " + nextMonthName + " dan peak season akhir tahun.");
+      const meta = document.querySelector("meta[name='description']");
+      if (meta) meta.content = "Analisis historis Februari 2023–" + latestMonthName + " " + latestYear + " dan prediksi strategis " + nextMonthName + " " + nextYear + ".";
+
+      const peaks = labels
+        .map((label, index) => ({ label, value: actual[index] }))
+        .filter((item) => item.value != null && labelOrder(item.label) <= latestYm)
+        .sort((a, b) => b.value - a.value)
+        .slice(0, 2)
+        .sort((a, b) => labelOrder(a.label) - labelOrder(b.label));
+      const story = document.getElementById("trendStory");
+      if (story && peaks.length === 2) {
+        story.innerHTML = "Titik puncak pada jendela tiga tahun ini tercatat di " + peaks[0].label + " dan " + peaks[1].label + ". Titik " + latestMonthName + " " + latestYear + " ditandai khusus, lalu dihubungkan garis putus ke proyeksi <strong id=\"forecastHighlight\" class=\"text-gold-700 font-medium\">" + nextMonthName + " " + nextYear + ": " + IDR.format(Math.round(forecastValue)) + "</strong> (Projected <span id=\"forecastGrowth\">" + growthText + "</span> Growth).";
+      }
+      const trendCanvas = document.getElementById("trendChart");
+      if (trendCanvas) trendCanvas.setAttribute("aria-label", "Grafik tren penjualan historis dan prediksi " + nextMonthName + " " + nextYear);
+
+      const ytd = rows.filter((row) => row.status === "DIKIRIM" && row.year === latestYearNum && row.ym <= latestYm);
+      const fullName = { Shopee: "PT. Shopee International", Tokopedia: "PT. Tokopedia", "Mitra Semeru": "PT. Mitra Semeru", "Alfa Gift": "Alfa Gift", "Berhasil Tumbuh": "Berhasil Tumbuh", Lazada: "Lazada", Blibli: "Blibli" };
+      const topPlatform = topSum(ytd, (row) => platformShortName(row.platform));
+      const topBrand = topSum(ytd, (row) => row.brand);
+      const topItem = topSum(ytd, (row) => row.item);
+      if (topPlatform) {
+        const name = fullName[topPlatform[0]] || topPlatform[0];
+        setText("topPlatformName", name);
+        setText("topPlatformValue", miliarLabel(topPlatform[1]));
+        setText("chipPlatform", name + " · Lead Channel");
+      }
+      if (topBrand) {
+        setText("topBrandName", topBrand[0]);
+        setText("topBrandValue", miliarLabel(topBrand[1]));
+        setText("chipBrand", topBrand[0] + " · Lead Brand");
+      }
+      if (topItem) {
+        setText("topItemName", topItem[0]);
+        setText("topItemValue", miliarLabel(topItem[1]));
+      }
+
+      const stock = buildStock(rows, latestYm);
+      const declines = buildDeclines(rows, latestYm);
+      const stockNames = new Set(stock.map((item) => item.name));
+      declines.forEach((item) => { item.overlap = stockNames.has(item.name); });
+      renderStock(stock);
+      renderPromo(declines);
+
+      const juta = Math.round(forecastValue / 1e6).toLocaleString("id-ID");
+      const itemName = topItem ? topItem[0] : "item unggulan";
+      const move = growthPct >= 0 ? "lonjakan" : "pergerakan";
+      setText("insightBody0", "Alokasi Budget Marketing: Mengingat prediksi " + move + " omset ke Rp " + juta + " Juta di bulan " + nextMonthName + ", tingkatkan budget ads di Shopee khusus untuk produk " + itemName + ".");
+      const overlap = declines.filter((item) => item.overlap).map((item) => item.name);
+      const overlapText = overlap.length ? " Utamakan " + overlap.join(", ") + ", karena item tersebut juga masuk daftar Top 10." : " Utamakan item yang ditandai latar merah, karena item tersebut juga masuk daftar Top 10.";
+      setText("insightBody1", "Fokus Promosi Item Menurun: Arahkan program promosi ke item dengan tren penurunan penjualan." + overlapText);
+      const ranked = [...topSumAll(ytd, (row) => platformShortName(row.platform)).entries()].sort((a, b) => a[1] - b[1]);
+      const leaderValue = ranked.length ? ranked[ranked.length - 1][1] : 0;
+      const weakest = ranked.find((item) => item[1] < leaderValue && item[1] >= leaderValue * 0.01);
+      if (weakest) {
+        const tail = weakest[0] === "Mitra Semeru"
+          ? ", kanal aktif berikutnya dengan kinerja terendah setelah Tokopedia ditutup."
+          : ", kanal dengan omset tahun berjalan terendah di antara kanal yang masih aktif.";
+        setText("insightTitle2", "Optimasi " + weakest[0]);
+        setText("insightBody2", "Optimasi " + weakest[0] + ": Lakukan kampanye co-branding atau diskon khusus untuk menaikkan penetrasi pasar di " + weakest[0] + tail);
+      }
+      if (stock[0] && stock[1]) {
+        setText("insightBody3", "Manajemen Inventaris: Amankan stok produk '" + stock[0].name + "' dan '" + stock[1].name + "' menjelang peak season akhir tahun. Selalu jaga dan amankan buffer stok, terutama untuk item Top 10, agar tidak terjadi kekosongan stok.");
+      }
     }
 
     function buildPlatformYearChart() {
