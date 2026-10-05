@@ -405,21 +405,27 @@ function cacheKey(question, context) {
   return String(hash);
 }
 
+function scrubLog(value) {
+  return String(value || "").replace(/AIza[\w-]+/g, "[key]").replace(/\s+/g, " ").slice(0, 300);
+}
+
 async function loadKpis() {
   sheetCache.at = 0;
   sheetCache.kpis = null;
   const url = DEFAULT_SHEET_URL + "&_cb=" + Date.now() + "_" + Math.random().toString(36).substring(2);
-  const response = await fetch(url, {
-    cache: "reload",
-    headers: {
-      accept: "text/csv",
-      "user-agent": "Mozilla/5.0 (compatible; EvaluasiEcomAnalyst/1.0)",
-      "Cache-Control": "no-cache, no-store, must-revalidate",
-      Pragma: "no-cache",
-      Expires: "0",
-    },
-  });
-  if (!response.ok) throw new Error("Sheet tidak dapat dibaca.");
+  let response;
+  try {
+    response = await fetch(url, { headers: { accept: "text/csv" } });
+  } catch (error) {
+    const message = "Sheet fetch gagal: " + scrubLog(error && error.message ? error.message : error);
+    console.error(message);
+    throw new Error(message);
+  }
+  if (!response.ok) {
+    const message = "Sheet tidak dapat dibaca (" + response.status + "): " + scrubLog(await response.text());
+    console.error(message);
+    throw new Error(message);
+  }
   const kpis = buildKpis(rowsFromCsv(await response.text()));
   sheetCache.at = Date.now();
   sheetCache.url = url;
@@ -489,7 +495,9 @@ async function askGemini(apiKey, question, context) {
         signal: AbortSignal.timeout(25000),
       });
       if (!response.ok) {
-        lastError = new Error(`Gemini ${model} ${response.status}`);
+        const detail = scrubLog(await response.text());
+        lastError = new Error(`Gemini ${model} ${response.status}: ${detail}`);
+        console.error(lastError.message);
         continue;
       }
       const payload = await response.json();
@@ -500,6 +508,7 @@ async function askGemini(apiKey, question, context) {
       return result;
     } catch (error) {
       lastError = error;
+      console.error(scrubLog(error && error.stack ? error.stack : error));
     }
   }
   throw lastError || new Error("Gemini tidak menjawab.");
@@ -608,7 +617,9 @@ async function askGeminiText(apiKey, question, context) {
         signal: AbortSignal.timeout(25000),
       });
       if (!response.ok) {
-        lastError = new Error(`Gemini ${model} ${response.status}`);
+        const detail = scrubLog(await response.text());
+        lastError = new Error(`Gemini ${model} ${response.status}: ${detail}`);
+        console.error(lastError.message);
         continue;
       }
       const payload = await response.json();
@@ -619,6 +630,7 @@ async function askGeminiText(apiKey, question, context) {
       return result;
     } catch (error) {
       lastError = error;
+      console.error(scrubLog(error && error.stack ? error.stack : error));
     }
   }
   throw lastError || new Error("Gemini tidak menjawab.");
@@ -645,7 +657,7 @@ export async function handleAnalystRequest(request, env) {
       : await askGeminiText(apiKey, question, context);
     return { status: 200, body: result };
   } catch (error) {
-    console.error(error && error.message ? error.message : "Analyst error");
+    console.error(scrubLog(error && error.stack ? error.stack : error));
     return { status: 503, body: { error: FRIENDLY_ERROR } };
   }
 }

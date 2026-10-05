@@ -110,6 +110,7 @@
       });
       const data = await response.json().catch(() => ({}));
       if (!response.ok || data.error) {
+        console.error("AI Analyst gagal", response.status, data && data.error ? data.error : data);
         status.textContent = "AI Analyst sedang tidak dapat digunakan. Silakan coba lagi.";
         return;
       }
@@ -117,6 +118,7 @@
       if (!full && data.answer) showAnswer(data.answer);
       else render(data);
     } catch (error) {
+      console.error("AI Analyst gagal", error);
       status.textContent = "AI Analyst sedang tidak dapat digunakan. Silakan coba lagi.";
     } finally {
       analyze.disabled = false;
