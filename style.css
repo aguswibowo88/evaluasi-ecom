@@ -251,6 +251,45 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
       }
     }
 
+    .risk-board { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 3.5rem; }
+    .risk-kicker {
+      color: #9A3412;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+    .risk-panel {
+      border: 1px solid rgba(154, 52, 18, 0.35);
+      border-left: 4px solid #991B1B;
+      border-radius: 1.25rem;
+      background: linear-gradient(180deg, #FFF7ED 0%, #FEF2F2 100%);
+      padding: 1.25rem 1.35rem;
+    }
+    .risk-gauge-row { display: flex; flex-wrap: wrap; align-items: center; gap: 1.25rem; margin-top: 1rem; }
+    .risk-gauge {
+      width: 148px;
+      height: 148px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: conic-gradient(#991B1B calc(var(--share) * 1%), #FDE68A 0);
+      flex: 0 0 auto;
+    }
+    .risk-gauge span {
+      width: 104px;
+      height: 104px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #FFF7ED;
+      color: #7F1D1D;
+      font-size: 1.35rem;
+      font-weight: 700;
+    }
+    .risk-dead td { background: #FEE2E2; color: #7F1D1D; }
+    .risk-chart { height: 280px; }
+
     ::-webkit-scrollbar { width: 10px; }
     ::-webkit-scrollbar-track { background: #F4F7FB; }
     ::-webkit-scrollbar-thumb {

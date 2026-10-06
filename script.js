@@ -754,6 +754,114 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
       if (stock[0] && stock[1]) {
         setText("insightBody3", "Manajemen Inventaris: Amankan stok produk '" + stock[0].name + "' dan '" + stock[1].name + "' menjelang peak season akhir tahun. Selalu jaga dan amankan buffer stok, terutama untuk item Top 10, agar tidak terjadi kekosongan stok.");
       }
+      renderRiskAssessment(rows, monthSums, latestYm, latestYearNum);
+    }
+
+    function renderRiskAssessment(rows, monthSums, latestYm, latestYear) {
+      const sentAll = rows.filter((row) => row.status === "DIKIRIM");
+      const byPlatform = topSumAll(sentAll, (row) => platformShortName(row.platform));
+      const platformTotal = [...byPlatform.values()].reduce((sum, value) => sum + value, 0);
+      const shopee = byPlatform.get("Shopee") || 0;
+      const share = platformTotal ? Math.round((shopee / platformTotal) * 1000) / 10 : 0;
+      const gauge = document.getElementById("riskGauge");
+      if (gauge) gauge.style.setProperty("--share", String(Math.max(0, Math.min(100, share))));
+      const shareText = String(share).replace(".", ",");
+      setText("riskShare", shareText + "%");
+      setText("riskPlatformText", "Shopee menguasai " + shareText + "% dari seluruh omset DIKIRIM. Ketergantungan ini adalah single point of failure: jika kanal ini terganggu, sebagian besar pendapatan berhenti. Diversifikasi ke Tokopedia dan platform lain mendesak, bukan opsional.");
+
+      const byItemYear = new Map();
+      rows.forEach((row) => {
+        if (row.status !== "DIKIRIM" || !row.item || row.year < 2023 || row.year > latestYear) return;
+        if (!byItemYear.has(row.item)) byItemYear.set(row.item, new Map());
+        const years = byItemYear.get(row.item);
+        years.set(row.year, (years.get(row.year) || 0) + row.amount);
+      });
+      const dead = [];
+      byItemYear.forEach((years, name) => {
+        const present = [...years.keys()].sort((a, b) => a - b);
+        if (present.length < 2) return;
+        const firstYear = present[0];
+        const first = years.get(firstYear) || 0;
+        const latest = years.get(latestYear) || 0;
+        if (first < 1000000 || latest >= first) return;
+        const drop = (latest - first) / first;
+        if (drop > -0.5) return;
+        dead.push({ name, firstYear, first, latest, drop });
+      });
+      dead.sort((a, b) => a.drop - b.drop || (b.first - b.latest) - (a.first - a.latest));
+      const deadTop = dead.slice(0, 5);
+      setText("riskDeadLead", "Lima SKU dengan penurunan paling tajam sejak 2023 hingga " + latestYear + ", data terakhir di sheet. Hanya penurunan 50% atau lebih yang masuk.");
+      setText("riskDeadLast", "Omset " + latestYear);
+      const deadBody = document.getElementById("riskDeadBody");
+      if (deadBody) {
+        deadBody.innerHTML = deadTop.map((item) => {
+          const dropText = "−" + Math.abs(item.drop * 100).toFixed(1).replace(".", ",") + "%";
+          return "<tr class=\"risk-dead\"><td class=\"px-3 py-2\">" + escapeHtml(item.name) + "</td><td class=\"px-3 py-2 text-right tabular-nums\">" + item.firstYear + "<br>" + IDR.format(Math.round(item.first)) + "</td><td class=\"px-3 py-2 text-right tabular-nums\">" + IDR.format(Math.round(item.latest)) + "</td><td class=\"px-3 py-2 text-right font-medium tabular-nums\">" + dropText + "</td></tr>";
+        }).join("") || "<tr><td class=\"px-3 py-3 text-slate-500\" colspan=\"4\">Belum ada SKU dengan penurunan drastis.</td></tr>";
+      }
+
+      const points = [];
+      for (let ym = latestYm - 11; ym <= latestYm; ym += 1) {
+        const previous = monthSums.get(ymLabel(ym - 1)) || 0;
+        if (!previous) continue;
+        const current = monthSums.get(ymLabel(ym)) || 0;
+        points.push({ label: ymLabel(ym), pct: ((current - previous) / previous) * 100 });
+      }
+      const canvas = document.getElementById("riskMomChart");
+      if (canvas && points.length) {
+        const existing = Chart.getChart(canvas);
+        if (existing) existing.destroy();
+        new Chart(canvas, {
+          type: "bar",
+          data: {
+            labels: points.map((item) => item.label),
+            datasets: [{
+              label: "MoM",
+              data: points.map((item) => Math.round(item.pct * 10) / 10),
+              backgroundColor: points.map((item) => (item.pct < 0 ? "#991B1B" : "#C2410C")),
+              borderRadius: 6,
+              maxBarThickness: 28,
+            }],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                ...tooltipTheme,
+                callbacks: {
+                  label(ctx) { return " " + String(ctx.raw).replace(".", ",") + "%"; },
+                },
+              },
+            },
+            scales: {
+              x: { grid: { display: false }, ticks: { color: "#7F1D1D", maxRotation: 50, minRotation: 0 } },
+              y: {
+                grid: { color: "rgba(153,27,27,0.12)" },
+                ticks: { color: "#7F1D1D", callback(value) { return value + "%"; } },
+              },
+            },
+          },
+        });
+      }
+      if (points.length) {
+        const values = points.map((item) => item.pct);
+        const low = Math.min(...values);
+        const high = Math.max(...values);
+        setText("riskMomNote", "Variansi MoM sangat liar, dari " + low.toFixed(1).replace(".", ",") + "% sampai " + high.toFixed(1).replace(".", ",") + "% pada 12 bulan terakhir. Pola naik-turun yang tidak beraturan ini menunjukkan volatilitas tinggi: penjualan ditopang promosi, bukan pertumbuhan organik.");
+      }
+
+      const byItem = [...topSumAll(sentAll, (row) => row.item).entries()].filter((item) => item[1] > 0).sort((a, b) => b[1] - a[1]);
+      const revenue = byItem.reduce((sum, item) => sum + item[1], 0);
+      const heroes = byItem.slice(0, 3);
+      if (heroes.length && revenue) {
+        const heroValue = heroes.reduce((sum, item) => sum + item[1], 0);
+        const heroShare = Math.round((heroValue / revenue) * 1000) / 10;
+        const restShare = Math.round((100 - heroShare) * 10) / 10;
+        const names = heroes.map((item) => item[0]).join(", ");
+        setText("riskHeroNote", "Hanya " + heroes.length + " SKU hero (" + names + ") yang menopang inti pendapatan perusahaan, sebesar " + String(heroShare).replace(".", ",") + "% dari seluruh omset DIKIRIM. Sisa katalog (" + String(restShare).replace(".", ",") + "%) tersebar dan sangat tidak efisien.");
+      }
     }
 
     function buildPlatformYearChart() {
