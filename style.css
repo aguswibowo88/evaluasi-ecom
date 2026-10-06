@@ -251,7 +251,7 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
       }
     }
 
-    .risk-board { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 3.5rem; }
+    .risk-board { display: flex; flex-direction: column; gap: 1.25rem; margin-top: 0; }
     .risk-kicker {
       color: #9A3412;
       font-size: 0.68rem;

@@ -52,7 +52,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
-  <link rel="stylesheet" href="style.css?v=poin05" />
+  <link rel="stylesheet" href="style.css?v=risk-order" />
 
 </head>
 <body class="bg-atmosphere min-h-screen antialiased">
@@ -359,8 +359,60 @@
 
     <section id="saran" class="relative py-8 px-4 sm:px-6 pb-10 scroll-mt-28">
       <div class="mx-auto max-w-4xl">
-        <div data-aos="fade-up">
-          <p class="text-xs tracking-[0.28em] uppercase text-gold-700 mb-3">04 — Implikasi Strategis</p>
+        <p class="text-xs tracking-[0.28em] uppercase text-gold-700 mb-3" data-aos="fade-up">04 — Implikasi Strategis</p>
+
+        <div id="risk" class="risk-board">
+          <div data-aos="fade-right">
+            <h2 class="font-display text-3xl sm:text-5xl text-slate-900">Analisis Bisnis Kritis &amp; Penilaian Risiko</h2>
+          </div>
+
+          <article class="risk-panel" data-aos="fade-right" data-aos-delay="40">
+            <p class="risk-kicker">Risiko Ketergantungan Platform</p>
+            <div class="risk-gauge-row">
+              <div id="riskGauge" class="risk-gauge" style="--share: 0"><span id="riskShare">—</span></div>
+              <div>
+                <h4 class="font-display text-2xl text-slate-900">Single Point of Failure</h4>
+                <p id="riskPlatformText" class="mt-2 text-sm leading-relaxed text-slate-700">Porsi Shopee terhadap seluruh omset sedang dihitung dari Google Sheet.</p>
+              </div>
+            </div>
+          </article>
+
+          <article class="risk-panel" data-aos="zoom-in" data-aos-delay="80">
+            <p class="risk-kicker">Stagnasi Produk &amp; Stok Mati</p>
+            <h4 class="font-display text-2xl text-slate-900 mt-1">Inventaris Tidak Efisien / Stok Mati</h4>
+            <p id="riskDeadLead" class="mt-2 text-sm text-slate-600">Lima SKU dengan penurunan paling tajam dari 2023 hingga data terakhir.</p>
+            <div class="mt-4 overflow-x-auto">
+              <table class="w-full text-left text-sm">
+                <thead class="text-[11px] tracking-[0.14em] uppercase text-slate-500">
+                  <tr>
+                    <th class="px-3 py-2 font-medium">SKU</th>
+                    <th id="riskDeadFirst" class="px-3 py-2 font-medium text-right">Awal</th>
+                    <th id="riskDeadLast" class="px-3 py-2 font-medium text-right">Terbaru</th>
+                    <th class="px-3 py-2 font-medium text-right">Penurunan</th>
+                  </tr>
+                </thead>
+                <tbody id="riskDeadBody"></tbody>
+              </table>
+            </div>
+          </article>
+
+          <article class="risk-panel" data-aos="fade-up" data-aos-delay="120">
+            <p class="risk-kicker">Pertumbuhan MoM dengan Volatilitas Tinggi</p>
+            <h4 class="font-display text-2xl text-slate-900 mt-1">Ayunan omset bulan ke bulan</h4>
+            <div class="risk-chart mt-4">
+              <canvas id="riskMomChart" aria-label="Volatilitas pertumbuhan omset bulan ke bulan"></canvas>
+            </div>
+            <p id="riskMomNote" class="mt-3 text-sm leading-relaxed text-slate-700"></p>
+          </article>
+
+          <article class="risk-panel" data-aos="zoom-in" data-aos-delay="160">
+            <p class="risk-kicker">Ketimpangan Portofolio Hero vs Zero</p>
+            <h4 class="font-display text-2xl text-slate-900 mt-1">Hanya sedikit SKU yang menopang pendapatan</h4>
+            <p id="riskHeroNote" class="mt-2 text-sm leading-relaxed text-slate-700">Porsi SKU hero terhadap seluruh katalog sedang dihitung.</p>
+          </article>
+        </div>
+
+        <div class="mt-16" data-aos="fade-up">
           <h2 class="font-display text-3xl sm:text-5xl text-slate-900">Saran &amp; Masukan Strategis</h2>
           <p id="saranLead" class="mt-3 text-slate-600">Empat prioritas eksekusi menjelang momentum September dan peak season akhir tahun.</p>
         </div>
@@ -432,58 +484,6 @@
                 <span id="insightBody3">Manajemen Inventaris: Amankan stok produk 'Simply Protect Kids' dan 'Sport SPF 50' menjelang peak season akhir tahun. Selalu jaga dan amankan buffer stok, terutama untuk item Top 10, agar tidak terjadi kekosongan stok.</span>
               </p>
             </div>
-          </article>
-        </div>
-
-        <div id="risk" class="risk-board">
-          <div data-aos="fade-right">
-            <p class="risk-kicker">Poin 05</p>
-            <h3 class="font-display text-3xl sm:text-4xl text-slate-900 mt-2">Analisis Bisnis Kritis &amp; Penilaian Risiko</h3>
-          </div>
-
-          <article class="risk-panel" data-aos="fade-right" data-aos-delay="40">
-            <p class="risk-kicker">Risiko Ketergantungan Platform</p>
-            <div class="risk-gauge-row">
-              <div id="riskGauge" class="risk-gauge" style="--share: 0"><span id="riskShare">—</span></div>
-              <div>
-                <h4 class="font-display text-2xl text-slate-900">Single Point of Failure</h4>
-                <p id="riskPlatformText" class="mt-2 text-sm leading-relaxed text-slate-700">Porsi Shopee terhadap seluruh omset sedang dihitung dari Google Sheet.</p>
-              </div>
-            </div>
-          </article>
-
-          <article class="risk-panel" data-aos="zoom-in" data-aos-delay="80">
-            <p class="risk-kicker">Stagnasi Produk &amp; Stok Mati</p>
-            <h4 class="font-display text-2xl text-slate-900 mt-1">Inventaris Tidak Efisien / Stok Mati</h4>
-            <p id="riskDeadLead" class="mt-2 text-sm text-slate-600">Lima SKU dengan penurunan paling tajam dari 2023 hingga data terakhir.</p>
-            <div class="mt-4 overflow-x-auto">
-              <table class="w-full text-left text-sm">
-                <thead class="text-[11px] tracking-[0.14em] uppercase text-slate-500">
-                  <tr>
-                    <th class="px-3 py-2 font-medium">SKU</th>
-                    <th id="riskDeadFirst" class="px-3 py-2 font-medium text-right">Awal</th>
-                    <th id="riskDeadLast" class="px-3 py-2 font-medium text-right">Terbaru</th>
-                    <th class="px-3 py-2 font-medium text-right">Penurunan</th>
-                  </tr>
-                </thead>
-                <tbody id="riskDeadBody"></tbody>
-              </table>
-            </div>
-          </article>
-
-          <article class="risk-panel" data-aos="fade-up" data-aos-delay="120">
-            <p class="risk-kicker">Pertumbuhan MoM dengan Volatilitas Tinggi</p>
-            <h4 class="font-display text-2xl text-slate-900 mt-1">Ayunan omset bulan ke bulan</h4>
-            <div class="risk-chart mt-4">
-              <canvas id="riskMomChart" aria-label="Volatilitas pertumbuhan omset bulan ke bulan"></canvas>
-            </div>
-            <p id="riskMomNote" class="mt-3 text-sm leading-relaxed text-slate-700"></p>
-          </article>
-
-          <article class="risk-panel" data-aos="zoom-in" data-aos-delay="160">
-            <p class="risk-kicker">Ketimpangan Portofolio Hero vs Zero</p>
-            <h4 class="font-display text-2xl text-slate-900 mt-1">Hanya sedikit SKU yang menopang pendapatan</h4>
-            <p id="riskHeroNote" class="mt-2 text-sm leading-relaxed text-slate-700">Porsi SKU hero terhadap seluruh katalog sedang dihitung.</p>
           </article>
         </div>
       </div>
