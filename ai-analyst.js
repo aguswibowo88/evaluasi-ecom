@@ -31,11 +31,112 @@
     status.textContent = busy ? "AI sedang menganalisis data..." : "";
   }
 
+  function inlineNodes(text) {
+    const frag = document.createDocumentFragment();
+    const source = String(text || "");
+    const pattern = /\*\*(.+?)\*\*/g;
+    let last = 0;
+    let match = pattern.exec(source);
+    while (match) {
+      if (match.index > last) frag.append(document.createTextNode(source.slice(last, match.index)));
+      const strong = document.createElement("strong");
+      strong.textContent = match[1];
+      frag.append(strong);
+      last = match.index + match[0].length;
+      match = pattern.exec(source);
+    }
+    if (last < source.length) frag.append(document.createTextNode(source.slice(last)));
+    return frag;
+  }
+
+  function isTableLine(line) {
+    return /^\s*\|.+\|\s*$/.test(line);
+  }
+
+  function isBulletLine(line) {
+    return /^\s*(?:[-*•]|\d+[.)])\s+\S/.test(line);
+  }
+
+  function isHeadingLine(line) {
+    return /^\s*#{1,3}\s+\S/.test(line);
+  }
+
+  function buildTable(rows) {
+    const wrap = document.createElement("div");
+    wrap.className = "ai-table-wrap";
+    const table = document.createElement("table");
+    table.className = "ai-table";
+    const head = document.createElement("thead");
+    const body = document.createElement("tbody");
+    rows.forEach((cells, index) => {
+      const tr = document.createElement("tr");
+      cells.forEach((cell) => {
+        const td = document.createElement(index === 0 ? "th" : "td");
+        td.append(inlineNodes(cell));
+        tr.append(td);
+      });
+      (index === 0 ? head : body).append(tr);
+    });
+    table.append(head, body);
+    wrap.append(table);
+    return wrap;
+  }
+
+  function renderPresentation(root, source) {
+    root.replaceChildren();
+    const lines = String(source || "").replace(/\r\n/g, "\n").split("\n");
+    let i = 0;
+    while (i < lines.length) {
+      const line = lines[i];
+      if (!line.trim()) {
+        i += 1;
+        continue;
+      }
+      if (isHeadingLine(line)) {
+        const heading = document.createElement("h3");
+        heading.append(inlineNodes(line.replace(/^\s*#{1,3}\s+/, "")));
+        root.append(heading);
+        i += 1;
+        continue;
+      }
+      if (isTableLine(line)) {
+        const rows = [];
+        while (i < lines.length && isTableLine(lines[i])) {
+          const cells = lines[i].trim().replace(/^\|/, "").replace(/\|$/, "").split("|").map((cell) => cell.trim());
+          if (!cells.every((cell) => /^:?-+:?$/.test(cell))) rows.push(cells);
+          i += 1;
+        }
+        if (rows.length) root.append(buildTable(rows));
+        continue;
+      }
+      if (isBulletLine(line)) {
+        const list = document.createElement("ul");
+        while (i < lines.length && isBulletLine(lines[i])) {
+          const item = document.createElement("li");
+          item.append(inlineNodes(lines[i].replace(/^\s*(?:[-*•]|\d+[.)])\s+/, "")));
+          list.append(item);
+          i += 1;
+        }
+        root.append(list);
+        continue;
+      }
+      const paragraph = document.createElement("p");
+      const buffer = [line.trim()];
+      i += 1;
+      while (i < lines.length && lines[i].trim() && !isHeadingLine(lines[i]) && !isTableLine(lines[i]) && !isBulletLine(lines[i])) {
+        buffer.push(lines[i].trim());
+        i += 1;
+      }
+      paragraph.append(inlineNodes(buffer.join(" ")));
+      root.append(paragraph);
+    }
+  }
+
   function fillList(node, items) {
     node.replaceChildren();
     (items || []).forEach((item) => {
       const li = document.createElement("li");
-      li.textContent = item;
+      li.append(inlineNodes(item));
       node.appendChild(li);
     });
   }
@@ -62,18 +163,18 @@
   }
 
   function showAnswer(text) {
-    answer.textContent = text;
+    renderPresentation(answer, text);
     answerCard.hidden = false;
     report.hidden = true;
     result.hidden = false;
   }
 
   function render(data) {
-    fields.summary.textContent = data.summary || "";
-    fields.trend_analysis.textContent = data.trend_analysis || "";
-    fields.platform_analysis.textContent = data.platform_analysis || "";
-    fields.brand_analysis.textContent = data.brand_analysis || "";
-    fields.product_analysis.textContent = data.product_analysis || "";
+    renderPresentation(fields.summary, data.summary || "");
+    renderPresentation(fields.trend_analysis, data.trend_analysis || "");
+    renderPresentation(fields.platform_analysis, data.platform_analysis || "");
+    renderPresentation(fields.brand_analysis, data.brand_analysis || "");
+    renderPresentation(fields.product_analysis, data.product_analysis || "");
     fillList(lists.key_findings, data.key_findings);
     fillList(lists.anomalies, data.anomalies);
     fillList(lists.possible_explanations, data.possible_explanations);

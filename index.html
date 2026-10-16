@@ -52,7 +52,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
-  <link rel="stylesheet" href="style.css?v=risk-order" />
+  <link rel="stylesheet" href="style.css?v=ai-present" />
 
 </head>
 <body class="bg-atmosphere min-h-screen antialiased">
@@ -489,7 +489,7 @@
       </div>
     </section>
     <section id="ai" class="relative py-8 px-4 sm:px-6 pb-28 scroll-mt-28">
-      <div class="mx-auto max-w-4xl">
+      <div class="mx-auto max-w-6xl">
         <div data-aos="fade-up">
           <p class="text-xs tracking-[0.28em] uppercase text-gold-700 mb-3">05 — AI Analyst</p>
           <h2 class="font-display text-3xl sm:text-5xl text-slate-900">Analisis dengan AI</h2>
@@ -506,44 +506,44 @@
         <p id="aiStatus" class="mt-4 text-sm text-slate-600" role="status"></p>
         <div id="aiResult" class="mt-6" hidden>
           <article id="aiAnswerCard" class="glass-strong rounded-2xl p-5 sm:p-6" hidden>
-            <p id="aiAnswer" class="text-slate-700 leading-relaxed whitespace-pre-wrap"></p>
+            <div id="aiAnswer" class="ai-present"></div>
           </article>
           <div id="aiReport" class="space-y-4">
           <article class="glass-strong rounded-2xl p-5 sm:p-6">
             <p class="text-[11px] tracking-[0.2em] uppercase text-gold-700">Ringkasan</p>
-            <p id="aiSummary" class="mt-2 text-slate-700 leading-relaxed"></p>
+            <div id="aiSummary" class="ai-present mt-2"></div>
           </article>
           <article class="glass rounded-2xl p-5 sm:p-6">
             <p class="text-[11px] tracking-[0.2em] uppercase text-teal-700">Temuan utama</p>
-            <ul id="aiFindings" class="mt-2 list-disc pl-5 text-slate-700 space-y-1"></ul>
+            <ul id="aiFindings" class="ai-points"></ul>
           </article>
           <article class="glass rounded-2xl p-5 sm:p-6">
             <p class="text-[11px] tracking-[0.2em] uppercase text-gold-700">Tren</p>
-            <p id="aiTrend" class="mt-2 text-slate-700 leading-relaxed"></p>
+            <div id="aiTrend" class="ai-present mt-2"></div>
           </article>
           <article class="glass rounded-2xl p-5 sm:p-6">
             <p class="text-[11px] tracking-[0.2em] uppercase text-gold-700">Platform</p>
-            <p id="aiPlatform" class="mt-2 text-slate-700 leading-relaxed"></p>
+            <div id="aiPlatform" class="ai-present mt-2"></div>
           </article>
           <article class="glass rounded-2xl p-5 sm:p-6">
             <p class="text-[11px] tracking-[0.2em] uppercase text-gold-700">Merek</p>
-            <p id="aiBrand" class="mt-2 text-slate-700 leading-relaxed"></p>
+            <div id="aiBrand" class="ai-present mt-2"></div>
           </article>
           <article class="glass rounded-2xl p-5 sm:p-6">
             <p class="text-[11px] tracking-[0.2em] uppercase text-gold-700">Produk</p>
-            <p id="aiProduct" class="mt-2 text-slate-700 leading-relaxed"></p>
+            <div id="aiProduct" class="ai-present mt-2"></div>
           </article>
           <article class="glass rounded-2xl p-5 sm:p-6">
             <p class="text-[11px] tracking-[0.2em] uppercase text-gold-700">Anomali</p>
-            <ul id="aiAnomalies" class="mt-2 list-disc pl-5 text-slate-700 space-y-1"></ul>
+            <ul id="aiAnomalies" class="ai-points"></ul>
           </article>
           <article class="glass rounded-2xl p-5 sm:p-6">
             <p class="text-[11px] tracking-[0.2em] uppercase text-gold-700">Kemungkinan penjelasan</p>
-            <ul id="aiHypotheses" class="mt-2 list-disc pl-5 text-slate-700 space-y-1"></ul>
+            <ul id="aiHypotheses" class="ai-points"></ul>
           </article>
           <article class="glass rounded-2xl p-5 sm:p-6">
             <p class="text-[11px] tracking-[0.2em] uppercase text-teal-700">Rekomendasi</p>
-            <ul id="aiRecommendations" class="mt-2 list-disc pl-5 text-slate-700 space-y-1"></ul>
+            <ul id="aiRecommendations" class="ai-points"></ul>
           </article>
           </div>
         </div>
@@ -558,7 +558,7 @@
   </footer>
 
   <script src="script.js?v=poin05"></script>
-  <script src="ai-analyst.js?v=6"></script>
+  <script src="ai-analyst.js?v=7"></script>
 
 </body>
 </html>

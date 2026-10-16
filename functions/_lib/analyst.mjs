@@ -435,13 +435,17 @@ async function loadKpis() {
 
 function systemPrompt() {
   return [
-    "You are an E-Commerce Data Analyst.",
+    "You are a senior Business Analyst (Ahli Analisa Bisnis) for this e-commerce sales evaluation.",
+    "Give a comprehensive, clear answer that stays on the question. Write in Bahasa Indonesia.",
     "Use ONLY the provided backend data. Do not make up numbers.",
-    "Differentiate between factual data and hypothesis.",
+    "Differentiate between factual data and hypothesis. Prefix a non-factual cause with 'Hipotesis: '.",
     `If data is insufficient to explain a "why", you MUST state: "${INSUFFICIENT}"`,
-    "Write the answer in Bahasa Indonesia.",
     "Return only JSON with keys summary, key_findings, trend_analysis, platform_analysis, brand_analysis, product_analysis, anomalies, possible_explanations, recommendations.",
-    "key_findings, anomalies, possible_explanations, and recommendations are arrays of strings.",
+    "key_findings, anomalies, possible_explanations, and recommendations are arrays of short sentences, one idea each, without a leading dash.",
+    "summary, trend_analysis, platform_analysis, brand_analysis, and product_analysis are presentation text, not essays.",
+    "Each of those text fields starts with one sentence that states the conclusion, then markdown bullets that each begin with '- '.",
+    "When a field compares years, platforms, brands, or products, include one markdown table in that field: header row, a separator row of dashes, then data rows.",
+    "Bold only the key figure with **double asterisks**.",
     "possible_explanations must be hypotheses, not facts.",
     `If there is no clear anomaly, anomalies must be ["${NO_ANOMALY}"].`,
     "Amounts are Indonesian Rupiah. Do not invent transactions or average transaction value when those fields are null.",
@@ -468,7 +472,7 @@ function normalizeResult(raw) {
 }
 
 async function askGemini(apiKey, question, context) {
-  const key = cacheKey(question, context);
+  const key = `full:v2:${cacheKey(question, context)}`;
   const cached = answerCache.get(key);
   if (cached && Date.now() < cached.exp) return cached.value;
   const body = {
@@ -563,7 +567,20 @@ function directSalesAnswer(question, kpis) {
   const hits = (kpis.platform_yearly || []).filter((item) => mentionsPlatform(text, item.platform));
   if (hits.length !== 1) return "";
   const revenue = hits[0].revenue_idr[year];
-  return `Omset ${hits[0].platform} tahun ${year} adalah ${formatRupiah(revenue)}. Angka ini adalah BRUTTO pesanan berstatus DIKIRIM. Penjualan, omset, dan omset penjualan memakai nilai yang sama.`;
+  const omset = formatRupiah(revenue);
+  return [
+    `**Omset ${hits[0].platform} tahun ${year} adalah ${omset}.**`,
+    "",
+    `- Angka ini adalah BRUTTO pesanan berstatus DIKIRIM.`,
+    `- Penjualan, omset, dan omset penjualan memakai nilai yang sama.`,
+    "",
+    "| Keterangan | Nilai |",
+    "| --- | --- |",
+    `| Platform | ${hits[0].platform} |`,
+    `| Tahun | ${year} |`,
+    `| Omset | ${omset} |`,
+    "| Cakupan | BRUTTO · STAT_PO DIKIRIM |",
+  ].join("\n");
 }
 
 function platformLabel(name) {
@@ -580,12 +597,18 @@ function platformLabel(name) {
 
 function answerPrompt() {
   return [
-    "You are an E-Commerce Data Analyst.",
-    "Answer only the user's question in a detailed, conversational Bahasa Indonesia response.",
+    "You are a senior Business Analyst (Ahli Analisa Bisnis) for this e-commerce sales evaluation.",
+    "Answer only the user's question. Be comprehensive and clear, in Bahasa Indonesia.",
+    "Format the answer as a short executive presentation. Do not write a long essay and do not return JSON.",
+    "Structure the presentation like this:",
+    "1. First line: one sentence that directly answers the question. Bold the key figure with **double asterisks**.",
+    "2. Add a markdown heading (##) only for a theme the question actually needs.",
+    "3. Under each theme, use bullet lines that start with '- '. One idea per bullet, usually 3 to 6 bullets.",
+    "4. When the question compares periods, platforms, brands, or products, add one markdown table with a header row and a separator row of dashes. Keep the columns few and clearly labeled.",
+    "5. If a next step is useful, put short bullets under the heading '## Saran'.",
+    "Do not add unrelated sections such as Ringkasan, Temuan utama, Tren, Platform, Merek, Produk, Anomali, Kemungkinan penjelasan, or Rekomendasi unless the question asks for them.",
     "Use ONLY the provided backend data. Do not make up numbers.",
-    "Do not return JSON and do not write a structured report.",
-    "Do not add sections such as Ringkasan, Temuan utama, Tren, Platform, Merek, Produk, Anomali, Kemungkinan penjelasan, or Rekomendasi.",
-    "Differentiate between factual data and hypothesis.",
+    "Differentiate between factual data and hypothesis. Prefix a non-factual cause with 'Hipotesis: '.",
     `If data is insufficient to explain a "why", you MUST state: "${INSUFFICIENT}"`,
     "Amounts are Indonesian Rupiah. Do not invent transactions or average transaction value when those fields are null.",
     "Penjualan, omset, and omset penjualan all mean BRUTTO. The figures already include only STAT_PO DIKIRIM.",
@@ -594,7 +617,7 @@ function answerPrompt() {
 }
 
 async function askGeminiText(apiKey, question, context) {
-  const key = `text:${cacheKey(question, context)}`;
+  const key = `present:v2:${cacheKey(question, context)}`;
   const cached = answerCache.get(key);
   if (cached && Date.now() < cached.exp) return cached.value;
   const body = {

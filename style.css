@@ -290,6 +290,71 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
     .risk-dead td { background: #FEE2E2; color: #7F1D1D; }
     .risk-chart { height: 280px; }
 
+    .ai-present { color: #334155; line-height: 1.65; }
+    .ai-present p { margin: 0 0 0.85rem; }
+    .ai-present h3 {
+      margin: 1.15rem 0 0.55rem;
+      color: #0F2744;
+      font-family: "Cormorant Garamond", Georgia, serif;
+      font-size: 1.55rem;
+      font-weight: 600;
+      line-height: 1.2;
+    }
+    .ai-present h3:first-child { margin-top: 0.15rem; }
+    .ai-present strong { color: #0F2744; font-weight: 700; }
+    .ai-present ul,
+    .ai-points {
+      margin: 0.35rem 0 0.9rem;
+      padding: 0;
+      list-style: none;
+    }
+    .ai-present li,
+    .ai-points li {
+      position: relative;
+      margin: 0.38rem 0;
+      padding: 0.42rem 0.7rem 0.42rem 1.55rem;
+      border-radius: 0.7rem;
+      background: rgba(255, 255, 255, 0.72);
+      color: #334155;
+    }
+    .ai-present li::before,
+    .ai-points li::before {
+      content: "";
+      position: absolute;
+      left: 0.7rem;
+      top: 0.78rem;
+      width: 0.42rem;
+      height: 0.42rem;
+      border-radius: 999px;
+      background: #0F766E;
+    }
+    .ai-table-wrap {
+      overflow-x: auto;
+      margin: 0.35rem 0 1rem;
+      border: 1px solid #E4EAF2;
+      border-radius: 0.9rem;
+      background: #fff;
+    }
+    .ai-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.9rem;
+    }
+    .ai-table th {
+      background: #0F2744;
+      color: #fff;
+      text-align: left;
+      font-weight: 600;
+      padding: 0.65rem 0.8rem;
+      white-space: nowrap;
+    }
+    .ai-table td {
+      padding: 0.58rem 0.8rem;
+      border-top: 1px solid #EDF1F6;
+      vertical-align: top;
+    }
+    .ai-table tbody tr:nth-child(even) td { background: #F8FAFC; }
+
     ::-webkit-scrollbar { width: 10px; }
     ::-webkit-scrollbar-track { background: #F4F7FB; }
     ::-webkit-scrollbar-thumb {
