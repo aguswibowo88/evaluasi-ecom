@@ -263,10 +263,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
           animation: { duration: 1500, animateRotate: true, animateScale: true },
           cutout: "58%",
           plugins: {
-            legend: {
-              position: "bottom",
-              labels: { color: "#334155", padding: 14, usePointStyle: true, pointStyle: "circle" },
-            },
+            legend: { display: false },
             tooltip: {
               ...tooltipTheme,
               callbacks: {
