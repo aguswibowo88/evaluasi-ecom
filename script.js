@@ -1208,6 +1208,12 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
             maintainAspectRatio: false,
             layout: { padding: { top: 18, bottom: 8 } },
             animation: { duration: 1500, easing: "easeOutQuart" },
+            datasets: {
+              bar: {
+                categoryPercentage: 0.94,
+                barPercentage: 0.96,
+              },
+            },
             plugins: { legend, tooltip: pctTooltip },
           };
           kpiHost.replaceChildren();
@@ -1248,7 +1254,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
                 data: item.sla,
                 backgroundColor: item.color,
                 borderRadius: 6,
-                maxBarThickness: 18,
+                maxBarThickness: 48,
               })),
             },
             options: {
@@ -1269,7 +1275,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
                 data: platforms.map((item) => item.sla[index]),
                 backgroundColor: ["#0F766E", "#D4AF37", "#334155"][index],
                 borderRadius: 6,
-                maxBarThickness: 16,
+                maxBarThickness: 48,
               })),
             },
             options: {
