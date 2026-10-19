@@ -709,13 +709,18 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
       return String(value).replace(/[&<>"]/g, (ch) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "\"": "&quot;" }[ch]));
     }
 
+    function formatRpCell(value) {
+      const number = Math.round(Number(value) || 0).toLocaleString("id-ID");
+      return "<span class=\"rp-align\"><span>Rp</span><span>" + number + "</span></span>";
+    }
+
     function renderStock(list) {
       const body = document.getElementById("stockBody");
       if (!body || !list.length) return;
       body.innerHTML = list.map((item, index) => {
         const edge = index === list.length - 1 ? "" : "border-b border-slate-100";
         const buff = item.buff ? Math.round(item.buff).toLocaleString("id-ID") : "–";
-        return "<tr class=\"" + edge + "\"><td class=\"px-5 py-3\">" + escapeHtml(item.name) + "</td><td class=\"px-5 py-3 text-right tabular-nums\">" + IDR.format(Math.round(item.avg)) + "</td><td class=\"px-5 py-3 text-right tabular-nums\">" + IDR.format(Math.round(item.max)) + "</td><td class=\"px-5 py-3 text-right tabular-nums\">" + buff + "</td></tr>";
+        return "<tr class=\"" + edge + "\"><td class=\"px-5 py-3\">" + escapeHtml(item.name) + "</td><td class=\"px-5 py-3\">" + formatRpCell(item.avg) + "</td><td class=\"px-5 py-3\">" + formatRpCell(item.max) + "</td><td class=\"px-5 py-3 text-right tabular-nums\">" + buff + "</td></tr>";
       }).join("");
     }
 
@@ -727,7 +732,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
         if (item.overlap) classes.push("overlap-top10");
         if (index !== list.length - 1) classes.push("border-b border-slate-100");
         const pct = (item.pct < 0 ? "−" : "+") + Math.abs(item.pct * 100).toFixed(2).replace(".", ",") + "%";
-        return "<tr class=\"" + classes.join(" ") + "\"><td class=\"px-5 py-3\">" + escapeHtml(item.name) + "</td><td class=\"px-5 py-3 text-right tabular-nums\">" + IDR.format(Math.round(item.prior)) + "</td><td class=\"px-5 py-3 text-right tabular-nums\">" + IDR.format(Math.round(item.recent)) + "</td><td class=\"px-5 py-3 text-right font-medium text-rose-700 tabular-nums\">" + pct + "</td></tr>";
+        return "<tr class=\"" + classes.join(" ") + "\"><td class=\"px-5 py-3\">" + escapeHtml(item.name) + "</td><td class=\"px-5 py-3\">" + formatRpCell(item.prior) + "</td><td class=\"px-5 py-3\">" + formatRpCell(item.recent) + "</td><td class=\"px-5 py-3 text-right font-medium text-rose-700 tabular-nums\">" + pct + "</td></tr>";
       }).join("");
     }
 

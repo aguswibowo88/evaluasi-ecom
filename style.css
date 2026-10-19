@@ -355,6 +355,19 @@ html { scroll-behavior: smooth; scroll-padding-top: 6.5rem; }
     }
     .ai-table tbody tr:nth-child(even) td { background: #F8FAFC; }
 
+    .rp-align {
+      display: flex;
+      width: 100%;
+      justify-content: flex-end;
+      align-items: baseline;
+      gap: 0.4rem;
+      font-variant-numeric: tabular-nums;
+    }
+    .rp-align span:last-child {
+      min-width: 12ch;
+      text-align: right;
+    }
+
     ::-webkit-scrollbar { width: 10px; }
     ::-webkit-scrollbar-track { background: #F4F7FB; }
     ::-webkit-scrollbar-thumb {
