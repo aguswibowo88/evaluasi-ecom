@@ -148,15 +148,109 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
       });
     }
 
+    function platformContributionSlices() {
+      const totals = new Map();
+      (window.SHEET_ROWS || []).forEach((row) => {
+        if (String(row.status || "").toUpperCase() !== "DIKIRIM") return;
+        const name = platformShortName(row.platform);
+        if (!name) return;
+        totals.set(name, (totals.get(name) || 0) + Number(row.amount || 0));
+      });
+      const ranked = [...totals.entries()]
+        .map(([name, value]) => ({ name, value }))
+        .filter((item) => item.value > 0)
+        .sort((a, b) => b.value - a.value);
+      const slices = ranked.length
+        ? ranked.slice(0, 3)
+        : (platforms || []).map((item) => ({ name: item.name, value: item.value, pct: item.pct }));
+      const rest = ranked.slice(3);
+      if (rest.length) {
+        slices.push({ name: "Lain-lain", value: rest.reduce((sum, item) => sum + item.value, 0) });
+      }
+      if (!ranked.length) return slices;
+      const total = slices.reduce((sum, item) => sum + item.value, 0);
+      slices.forEach((item) => {
+        item.pct = total ? Math.round((item.value / total) * 100) : 0;
+      });
+      const gap = 100 - slices.reduce((sum, item) => sum + item.pct, 0);
+      if (gap && slices.length) slices[0].pct += gap;
+      return slices;
+    }
+
     function buildPlatformChart() {
       const ctx = document.getElementById("platformChart");
+      const slices = platformContributionSlices();
+      setText("platformCaption", slices.map((item) => item.name + " " + item.pct + "%").join(" · "));
+      const sliceLabelPlugin = {
+        id: "platformSliceLabels",
+        afterDatasetsDraw(chart) {
+          const { ctx: paint } = chart;
+          const meta = chart.getDatasetMeta(0);
+          if (!meta || meta.hidden) return;
+          const fontSize = chart.width < 520 ? 10 : 12;
+          const height = fontSize + 4;
+          paint.save();
+          paint.font = "600 " + fontSize + "px Outfit, sans-serif";
+          const items = [];
+          meta.data.forEach((arc, index) => {
+            const slice = slices[index];
+            if (!slice || !arc) return;
+            const angle = (arc.startAngle + arc.endAngle) / 2;
+            const cos = Math.cos(angle);
+            const sin = Math.sin(angle);
+            const text = slice.name + " " + slice.pct + "%";
+            items.push({
+              arc,
+              cos,
+              sin,
+              text,
+              align: cos >= -0.15 ? "left" : "right",
+              x: arc.x + cos * (arc.outerRadius + 14),
+              preferredY: arc.y + sin * (arc.outerRadius + 16),
+              width: paint.measureText(text).width,
+            });
+          });
+          const placed = [];
+          items.sort((a, b) => a.preferredY - b.preferredY).forEach((item) => {
+            let y = item.preferredY;
+            for (let guard = 0; guard < 6; guard += 1) {
+              const left = item.align === "left" ? item.x : item.x - item.width;
+              const box = { left: left - 6, top: y - height / 2, width: item.width + 12, height };
+              const hit = placed.find((prev) => box.left < prev.left + prev.width && box.left + box.width > prev.left && box.top < prev.top + prev.height && box.top + box.height > prev.top);
+              if (!hit) {
+                item.y = y;
+                placed.push(box);
+                return;
+              }
+              y = hit.top + hit.height + height / 2 + 2;
+            }
+            item.y = y;
+          });
+          items.forEach((item) => {
+            const edgeX = item.arc.x + item.cos * item.arc.outerRadius;
+            const edgeY = item.arc.y + item.sin * item.arc.outerRadius;
+            paint.strokeStyle = "rgba(51, 65, 85, 0.45)";
+            paint.lineWidth = 1;
+            paint.beginPath();
+            paint.moveTo(edgeX, edgeY);
+            paint.lineTo(item.align === "left" ? item.x - 4 : item.x + 4, item.y);
+            paint.stroke();
+            paint.fillStyle = "#1E293B";
+            paint.textAlign = item.align;
+            paint.textBaseline = "middle";
+            paint.fillText(item.text, item.x, item.y);
+          });
+          paint.restore();
+        },
+      };
       return new Chart(ctx, {
         type: "doughnut",
+        plugins: [sliceLabelPlugin],
         data: {
-          labels: platforms.map((p) => p.name + " " + p.pct + "%"),
+          labels: slices.map((item) => item.name + " " + item.pct + "%"),
           datasets: [{
-            data: platforms.map((p) => p.pct),
-            backgroundColor: ["#D4AF37", "#2DD4BF", "#64748B"],
+            data: slices.map((item) => item.value),
+            backgroundColor: ["#D4AF37", "#2DD4BF", "#64748B", "#0369A1"].slice(0, slices.length),
             borderColor: "#FFFFFF",
             borderWidth: 3,
             hoverOffset: 8,
@@ -165,16 +259,23 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          layout: { padding: { top: 18, right: 78, bottom: 8, left: 78 } },
           animation: { duration: 1500, animateRotate: true, animateScale: true },
-          cutout: "68%",
+          cutout: "58%",
           plugins: {
             legend: {
               position: "bottom",
-              labels: { color: "#334155", padding: 16, usePointStyle: true, pointStyle: "circle" },
+              labels: { color: "#334155", padding: 14, usePointStyle: true, pointStyle: "circle" },
             },
             tooltip: {
               ...tooltipTheme,
-              callbacks: { label(ctx) { return " " + ctx.label; } },
+              callbacks: {
+                label(item) {
+                  const slice = slices[item.dataIndex];
+                  if (!slice) return "";
+                  return " " + slice.name + " " + slice.pct + "% · " + IDR.format(slice.value);
+                },
+              },
             },
           },
         },
@@ -537,7 +638,7 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
         D.top_brand.label = miliarLabel(D.top_brand.value);
         setText("topBrandValue", D.top_brand.label);
       }
-      setText("platformCaption", platforms.map((item) => item.name + " " + item.pct + "%").join(" · "));
+      setText("platformCaption", platformContributionSlices().map((item) => item.name + " " + item.pct + "%").join(" · "));
       setText("brandCaption", brands.map((item) => item.name + " " + String(item.value_miliar).replace(".", ",") + "M").join(" · "));
       publishLatestPeriod(rows, monthSums);
     }
