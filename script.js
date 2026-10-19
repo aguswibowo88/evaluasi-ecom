@@ -38,7 +38,6 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
     setText("trendCaption", (trend.last_actual_label || "Ags 26") + ": " + (trend.last_actual_text || "") + " · Forecast Sep +" + growthPct + "%");
     setText("forecastHighlight", "September 2026: " + (trend.forecast_text || "Rp 437.966.053"));
     setText("forecastGrowth", "+" + growthPct + "%");
-    setText("platformCaption", platforms.map((p) => p.name + " " + p.pct + "%").join(" · "));
     setText("brandCaption", brands.map((b) => b.name + " " + String(b.value_miliar).replace(".", ",") + "M").join(" · "));
     setText("sourceFile", D.source_file || "DATA E-COM.xlsx");
     (D.insights || []).forEach((item, i) => {
@@ -180,7 +179,6 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
     function buildPlatformChart() {
       const ctx = document.getElementById("platformChart");
       const slices = platformContributionSlices();
-      setText("platformCaption", slices.map((item) => item.name + " " + item.pct + "%").join(" · "));
       const sliceLabelPlugin = {
         id: "platformSliceLabels",
         afterDatasetsDraw(chart) {
@@ -635,7 +633,6 @@ window.PRESENTATION_DATA = {"source_file": "DATA E-COM.xlsx", "top_platform": {"
         D.top_brand.label = miliarLabel(D.top_brand.value);
         setText("topBrandValue", D.top_brand.label);
       }
-      setText("platformCaption", platformContributionSlices().map((item) => item.name + " " + item.pct + "%").join(" · "));
       setText("brandCaption", brands.map((item) => item.name + " " + String(item.value_miliar).replace(".", ",") + "M").join(" · "));
       publishLatestPeriod(rows, monthSums);
     }
