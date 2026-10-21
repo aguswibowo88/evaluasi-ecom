@@ -4,6 +4,13 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Executive E-Commerce Performance Report</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="Icon.png" type="image/png" />
+  <link rel="apple-touch-icon" href="Icon.png" />
+  <meta name="theme-color" content="#0F766E" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Evaluasi E-Com" />
   <meta name="description" content="Analisis historis Februari 2023–Agustus 2026 dan prediksi strategis September 2026." />
   <meta property="og:image" content="https://aguswibowo88.github.io/evaluasi-ecom/preview.png" />
   <meta property="og:title" content="Surabaya Performance Report" />
@@ -571,6 +578,13 @@
 
   <script src="script.js?v=rp-align"></script>
   <script src="ai-analyst.js?v=7"></script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", function () {
+        navigator.serviceWorker.register("sw.js");
+      });
+    }
+  </script>
 
 </body>
 </html>
