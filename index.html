@@ -576,6 +576,8 @@
     </div>
   </footer>
 
+  <button type="button" id="installApp" class="fixed bottom-5 right-5 z-[90] rounded-full bg-teal-700 px-5 py-2.5 text-sm font-medium text-white shadow-lg">Instal</button>
+  <p id="installHint" class="fixed bottom-16 right-5 z-[90] max-w-xs rounded-2xl bg-white px-4 py-3 text-sm text-slate-700 shadow-lg" hidden></p>
   <script src="script.js?v=rp-align"></script>
   <script src="ai-analyst.js?v=7"></script>
   <script>
@@ -584,6 +586,37 @@
         navigator.serviceWorker.register("sw.js");
       });
     }
+    (function () {
+      var button = document.getElementById("installApp");
+      var hint = document.getElementById("installHint");
+      if (!button) return;
+      var deferred = null;
+      var standalone = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone === true;
+      if (standalone) {
+        button.hidden = true;
+        return;
+      }
+      window.addEventListener("beforeinstallprompt", function (event) {
+        event.preventDefault();
+        deferred = event;
+      });
+      button.addEventListener("click", function () {
+        if (!deferred) {
+          var ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+          hint.hidden = false;
+          hint.textContent = ios
+            ? "Di iPhone atau iPad: ketuk Bagikan, lalu Tambahkan ke Layar Utama."
+            : "Buka menu browser, lalu pilih Install atau Pasang aplikasi.";
+          return;
+        }
+        deferred.prompt();
+        deferred.userChoice.finally(function () { deferred = null; });
+      });
+      window.addEventListener("appinstalled", function () {
+        button.hidden = true;
+        hint.hidden = true;
+      });
+    })();
   </script>
 
 </body>
