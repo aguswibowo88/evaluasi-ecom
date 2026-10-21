@@ -1,0 +1,7 @@
+body:has(#passwordGate:not([hidden])) {
+  overflow: hidden;
+}
+
+#passwordGate[hidden] {
+  display: none !important;
+}

@@ -53,9 +53,22 @@
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
 
   <link rel="stylesheet" href="style.css?v=rp-align" />
+  <link rel="stylesheet" href="gate.css?v=1" />
 
 </head>
 <body class="bg-atmosphere min-h-screen antialiased">
+  <div id="passwordGate" class="fixed inset-0 z-[80] grid place-items-center bg-atmosphere px-4">
+    <form id="passwordForm" class="glass-strong w-full max-w-md rounded-3xl p-8 sm:p-10" autocomplete="off">
+      <p class="text-[11px] tracking-[0.28em] uppercase text-gold-700">Akses presentasi</p>
+      <h1 class="mt-3 font-display text-4xl text-slate-900">Evaluasi E-Commerce</h1>
+      <p class="mt-3 text-sm leading-relaxed text-slate-600">Masukkan password, lalu tekan Enter.</p>
+      <label class="sr-only" for="passwordInput">Password</label>
+      <input id="passwordInput" name="password" type="password" autocomplete="current-password" autofocus required class="mt-6 w-full rounded-full border border-slate-200 bg-white px-5 py-3 text-sm text-slate-800" placeholder="Password" />
+      <p id="passwordError" class="mt-3 text-sm text-rose-700" hidden></p>
+      <button type="submit" class="mt-4 w-full rounded-full bg-teal-700 px-5 py-3 text-sm font-medium text-white">Masuk</button>
+    </form>
+  </div>
+  <script src="gate.js?v=1"></script>
   <div class="fixed inset-0 bg-grid pointer-events-none"></div>
   <div class="orb w-72 h-72 bg-teal-500/20 top-24 left-10"></div>
   <div class="orb w-80 h-80 bg-gold-400/10 bottom-10 right-8" style="animation-delay: -7s;"></div>
